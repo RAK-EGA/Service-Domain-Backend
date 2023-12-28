@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:11",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:14",
     "containerDefinitions": [
         {
             "name": "service-backend",
@@ -8,8 +8,8 @@
             "portMappings": [
                 {
                     "name": "service-backend-80-tcp",
-                    "containerPort": 80,
-                    "hostPort": 80,
+                    "containerPort": 5000,
+                    "hostPort": 5000,
                     "protocol": "tcp",
                     "appProtocol": "http"
                 }
@@ -25,14 +25,15 @@
                     "awslogs-group": "/ecs/serviceTask",
                     "awslogs-region": "me-south-1",
                     "awslogs-stream-prefix": "ecs"
-                }
+                },
+                "secretOptions": []
             }
         }
     ],
     "family": "serviceTask",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 11,
+    "revision": 14,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -75,7 +76,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-12-28T05:55:53.157Z",
-    "registeredBy": "arn:aws:iam::945187596143:user/yarauser",
+    "registeredAt": "2023-12-28T07:55:14.233Z",
+    "registeredBy": "arn:aws:iam::945187596143:user/suhailuser",
     "tags": []
 }

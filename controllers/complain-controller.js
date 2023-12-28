@@ -20,6 +20,12 @@ const submitComplain = async (req, res) => {
       voiceRecordAttachment,
     });
     await newComplain.save();
+
+    newComplain.complainName = `${category}_${newComplain._id}`;
+    
+    // Save the newComplain again to update the complainName
+    await newComplain.save();
+
     res.json(newComplain);
   } catch (error) {
     console.error(error);
@@ -100,26 +106,33 @@ const getInProgressComplains = async (req, res) => {
 
 const filterAndSortTickets = async (req, res) => {
   try {
-      const searchString = req.params.searchString;
+    let searchString = req.params.searchString;
 
-      // Use regex for a case-insensitive substring match
-      const regex = new RegExp(searchString, 'i');
+    const regex = new RegExp(searchString, 'i');
+    searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
 
-      const tickets = await Complain.find({
+  
+    const tickets = await Complain.find({
+      $and: [
+        {
           $or: [
-              {category: { $regex: regex } },
-              { subcategory: { $regex: regex } },
-              // Add other fields as needed
-          ]
-      })
-      .sort({ timestamp: 1 }); // Sort by timestamp in ascending order (oldest first)
+            { category: { $regex: searchString } },
+            { subcategory: { $regex: searchString } },
+            { complainName: { $regex: searchString } },
+          ],
+        },
+        { status: "OPEN" }, 
+      ],
+    })
+      .sort({ createdAt: -1 }); 
 
-      res.json(tickets);
+    res.json(tickets);
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 module.exports = {

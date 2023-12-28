@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:1",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:11",
     "containerDefinitions": [
         {
             "name": "service-backend",
-            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:latest",
+            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:285e56ced444a2b15fc1bf999a77c30b0f7a5a6c",
             "cpu": 0,
             "portMappings": [
                 {
@@ -16,10 +16,8 @@
             ],
             "essential": true,
             "environment": [],
-            "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -27,15 +25,14 @@
                     "awslogs-group": "/ecs/serviceTask",
                     "awslogs-region": "me-south-1",
                     "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
+                }
             }
         }
     ],
     "family": "serviceTask",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 1,
+    "revision": 11,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -78,7 +75,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-12-25T12:31:41.837Z",
+    "registeredAt": "2023-12-28T05:55:53.157Z",
     "registeredBy": "arn:aws:iam::945187596143:user/yarauser",
     "tags": []
 }

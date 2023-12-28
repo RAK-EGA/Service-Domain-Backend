@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:19",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:21",
     "containerDefinitions": [
         {
             "name": "service-backend",
-            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:31bb2f4521470c00ca70b6b748db3d5086370555",
+            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:5c9bc0c95e19b065a63cde9a1747b52f5bbd587d",
             "cpu": 0,
             "portMappings": [
                 {
@@ -31,15 +31,14 @@
                     "awslogs-group": "/ecs/serviceTask",
                     "awslogs-region": "me-south-1",
                     "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
+                }
             }
         }
     ],
     "family": "serviceTask",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 19,
+    "revision": 21,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -85,7 +84,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-12-28T08:59:38.992Z",
-    "registeredBy": "arn:aws:iam::945187596143:user/suhailuser",
+    "registeredAt": "2023-12-28T09:35:42.166Z",
+    "registeredBy": "arn:aws:iam::945187596143:user/yarauser",
     "tags": []
 }

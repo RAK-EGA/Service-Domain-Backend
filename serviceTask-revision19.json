@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:17",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:19",
     "containerDefinitions": [
         {
             "name": "service-backend",
-            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:d7e025d693f55d970ab1715a31dfec3ad293aacd",
+            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:31bb2f4521470c00ca70b6b748db3d5086370555",
             "cpu": 0,
             "portMappings": [
                 {
@@ -16,6 +16,12 @@
             ],
             "essential": true,
             "environment": [],
+            "environmentFiles": [
+                {
+                    "value": "arn:aws:s3:::rakmun-servicebucket/.env",
+                    "type": "s3"
+                }
+            ],
             "mountPoints": [],
             "volumesFrom": [],
             "logConfiguration": {
@@ -25,14 +31,15 @@
                     "awslogs-group": "/ecs/serviceTask",
                     "awslogs-region": "me-south-1",
                     "awslogs-stream-prefix": "ecs"
-                }
+                },
+                "secretOptions": []
             }
         }
     ],
     "family": "serviceTask",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 17,
+    "revision": 19,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -47,6 +54,9 @@
         },
         {
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.env-files.s3"
         },
         {
             "name": "ecs.capability.execution-role-ecr-pull"
@@ -75,7 +85,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-12-28T08:13:37.349Z",
-    "registeredBy": "arn:aws:iam::945187596143:user/yarauser",
+    "registeredAt": "2023-12-28T08:59:38.992Z",
+    "registeredBy": "arn:aws:iam::945187596143:user/suhailuser",
     "tags": []
 }

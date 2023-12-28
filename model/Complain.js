@@ -57,7 +57,9 @@ const complainSchema = new mongoose.Schema({
   voiceRecordAttachment: {
     type: String,
   },
-  
+  Location: {
+    type: String,
+  },
 }
 ,{
   timestamps: true

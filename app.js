@@ -2,17 +2,44 @@
 const express = require('express');
 const { default: mongoose } = require('mongoose');
 const env=require('dotenv').config();
-// import mongoose from 'mongoose';
-// import router from './routes/user-routes.js';
-// import complainRouter from './routes/complain-router.js';
+const swaggerjsdoc = require("swagger-jsdoc");
+const swaggerui = require("swagger-ui-express");
 const complainRouter = require('./routes/complain-router.js');
  
 const app = express();
 const port= process.env.port
-
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:8081');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  });
 app.use(express.json());
  
 app.use("/service/complaint", complainRouter);
+const options = {
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Staff APIs Documentation",
+            version: "0.1",
+        },
+        servers: [
+            {
+                url: `http://localhost:${process.env.port}/`,
+            }
+        ]
+    },
+    apis: ["./routes/complain-router.js"],
+};
+ 
+ 
+const spacs = swaggerjsdoc(options);
+app.use(
+    "/api-docs",
+    swaggerui.serve,
+    swaggerui.setup(spacs)
+);
  
 mongoose
     .connect(

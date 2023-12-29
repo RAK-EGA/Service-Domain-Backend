@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const categoryEnum = ["ELECTRICITY", "WATER", "SEWAGE", "GARBAGE", "OTHER"];
-const statusEnum = ["OPEN", "IN_PROGRESS", "RESOLVED"];
+const statusEnum = ["OPEN", "IN_PROGRESS", "RESOLVED","CANCELED"];
 const subcategoryEnum = [
   "LEAKS",
   "LOW_WATER_PRESSURE",
@@ -32,6 +32,9 @@ const complainSchema = new mongoose.Schema({
     enum: categoryEnum,
     required: true,
     default: "OTHER",
+  },
+  citizenID: {
+    type: String,
   },
   complainName: {
     type: String,
@@ -65,6 +68,4 @@ const complainSchema = new mongoose.Schema({
   timestamps: true
 }
 );
-
-// export default mongoose.model('Complain', complainSchema);
 module.exports = mongoose.model("Complain", complainSchema);

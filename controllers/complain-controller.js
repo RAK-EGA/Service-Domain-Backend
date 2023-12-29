@@ -1,3 +1,5 @@
+
+
 const Complain = require("../model/Complain");
 
 const submitComplain = async (req, res) => {
@@ -9,6 +11,7 @@ const submitComplain = async (req, res) => {
       imageAttachment,
       complainName,
       voiceRecordAttachment,
+      citizenID,
     } = req.body;
 
     const newComplain = new Complain({
@@ -18,6 +21,7 @@ const submitComplain = async (req, res) => {
       imageAttachment,
       complainName,
       voiceRecordAttachment,
+      citizenID,
     });
     await newComplain.save();
 
@@ -27,6 +31,7 @@ const submitComplain = async (req, res) => {
     await newComplain.save();
 
     res.json(newComplain);
+    res.send("I'm here");
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -44,7 +49,7 @@ const updateComplainStatus = async (req, res) => {
       { status },
       { new: true }
     );
-    // updatedComplain.complainName= category + id;
+    
     if (!updatedComplain) {
       return res.status(404).json({ error: "Complain not found" });
     }
@@ -76,6 +81,7 @@ const getAllComplain = async (req, res) => {
 const getComplain = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id)
     const complain = await Complain.findById(id);
 
     if (!complain) {
@@ -94,6 +100,25 @@ const getInProgressComplains = async (req, res) => {
 
     if (complains.length === 0) {
       return res.status(404).json({ error: "No complaints in progress found" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+const getComplainsByCitizen = async (req, res) => {
+  try {
+    const { citizenID } = req.params;
+    if (!citizenID) {
+      return res.status(400).json({ error: "Citizen ID is required" });
+    }
+
+    const complains = await Complain.find({ citizenID: citizenID });
+
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints found for the specified citizen" });
     }
 
     res.json(complains);
@@ -141,5 +166,6 @@ module.exports = {
   getComplain,
   getAllComplain,
   filterAndSortTickets,
-  getInProgressComplains
+  getInProgressComplains,
+  getComplainsByCitizen
 };

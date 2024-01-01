@@ -2,7 +2,13 @@
 
 const Complain = require("../model/Complain");
 const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
-const { ebClient } = require("../ebClient");
+const { createEventBridgeClient } = require("../ebClient");
+const {sendToEventBridge} = require('../eventBridge.js')
+const ebClientUpdate = createEventBridgeClient(process.env.RULE_ARN_UPDATE);
+const ebClientSubmission = createEventBridgeClient(process.env.RULE_ARN_SUBMISSION);
+
+
+
 
 const submitComplain = async (req, res) => {
   try {
@@ -33,20 +39,10 @@ const submitComplain = async (req, res) => {
     await newComplain.save();
     const complainDetails = JSON.stringify(newComplain);
 
-    // Your EventBridge params with the complainDetails
-    const params = {
-      Entries: [
-        {
-          Detail: complainDetails,
-          DetailType: "appRequestSubmitted",
-          Resources: [process.env.RULE_ARN_SUBMISSION],
-          Source: "ticket",
-        },
-      ],
-    };
+    
 
     // Send the event to EventBridge
-    const data = await ebClient.send(new PutEventsCommand(params));
+    await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, ebClientSubmission, "appRequestSubmitted");
 
     res.json(newComplain);
   } catch (error) {
@@ -74,20 +70,9 @@ const updateComplainStatus = async (req, res) => {
   console.log(updatedComplain)
   const complainDetails = JSON.stringify(updatedComplain);
   console.log(complainDetails)
-  // EventBridge params with the complainDetails
-  const params = {
-    Entries: [
-      {
-        Detail: complainDetails,
-        DetailType: "complainStatusUpdated", // Adjust the DetailType accordingly
-        Resources: [process.env.RULE_ARN_UBDATE], // Use the appropriate rule ARN
-        Source: "ticket",
-      },
-    ],
-  };
 
   // Send the event to EventBridge
-  const data = await ebClient.send(new PutEventsCommand(params));
+  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, ebClientUpdate, "appRequestUpdated");
     res.json(result);
   } catch (error) {
     console.error(error);

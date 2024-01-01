@@ -4,8 +4,8 @@ const Complain = require("../model/Complain");
 const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 const { createEventBridgeClient } = require("../ebClient");
 const {sendToEventBridge} = require('../eventBridge.js')
-const ebClientUpdate = createEventBridgeClient(process.env.RULE_ARN_UPDATE);
-const ebClientSubmission = createEventBridgeClient(process.env.RULE_ARN_SUBMISSION);
+//const ebClientUpdate = createEventBridgeClient(process.env.RULE_ARN_UPDATE);
+//const ebClientSubmission = createEventBridgeClient(process.env.RULE_ARN_SUBMISSION);
 
 
 
@@ -42,7 +42,7 @@ const submitComplain = async (req, res) => {
     
 
     // Send the event to EventBridge
-    await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, ebClientSubmission, "appRequestSubmitted");
+    await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted");
 
     res.json(newComplain);
   } catch (error) {
@@ -72,7 +72,7 @@ const updateComplainStatus = async (req, res) => {
   console.log(complainDetails)
 
   // Send the event to EventBridge
-  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, ebClientUpdate, "appRequestUpdated");
+  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated");
     res.json(result);
   } catch (error) {
     console.error(error);

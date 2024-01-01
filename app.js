@@ -6,8 +6,15 @@ const swaggerjsdoc = require("swagger-jsdoc");
 const swaggerui = require("swagger-ui-express");
 const complainRouter = require('./routes/complain-router.js');
 const cors = require('cors');
+const { sendToEventBridge } = require('./eventBridge.js');
  
 const app = express();
+
+// console.log("Before");
+// sendToEventBridge({"key1": "value1"}, process.env.RULE_ARN_SUBMISSION , "empty")
+// console.log("After")
+
+
 const port= process.env.port
 app.use(express.json());
 app.use(cors());

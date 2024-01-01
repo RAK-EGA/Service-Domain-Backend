@@ -5,10 +5,13 @@ const env=require('dotenv').config();
 const swaggerjsdoc = require("swagger-jsdoc");
 const swaggerui = require("swagger-ui-express");
 const complainRouter = require('./routes/complain-router.js');
+const cors = require('cors');
  
 const app = express();
 const port= process.env.port
 app.use(express.json());
+app.use(cors());
+app.options('*', cors());
  
 app.use("/service/complaint", complainRouter);
 const options = {
@@ -20,7 +23,7 @@ const options = {
         },
         servers: [
             {
-                url: `http://localhost:${process.env.port}/`,
+                url: `http://rakmun-api.rakega.online/service/complaint`,
             }
         ]
     },

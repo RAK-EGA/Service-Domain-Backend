@@ -1,6 +1,8 @@
 
 
 const Complain = require("../model/Complain");
+const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
+const { ebClient } = require("../ebClient");
 
 const submitComplain = async (req, res) => {
   try {
@@ -29,9 +31,24 @@ const submitComplain = async (req, res) => {
     
     // Save the newComplain again to update the complainName
     await newComplain.save();
+    const complainDetails = JSON.stringify(newComplain);
+
+    // Your EventBridge params with the complainDetails
+    const params = {
+      Entries: [
+        {
+          Detail: complainDetails,
+          DetailType: "appRequestSubmitted",
+          Resources: [process.env.RULE_ARN_SUBMISSION],
+          Source: "ticket",
+        },
+      ],
+    };
+
+    // Send the event to EventBridge
+    const data = await ebClient.send(new PutEventsCommand(params));
 
     res.json(newComplain);
-    res.send("I'm here");
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -53,8 +70,24 @@ const updateComplainStatus = async (req, res) => {
     if (!updatedComplain) {
       return res.status(404).json({ error: "Complain not found" });
     }
-const result = await Complain.findById(updatedComplain._id)
+  const result = await Complain.findById(updatedComplain._id)
+  console.log(updatedComplain)
+  const complainDetails = JSON.stringify(updatedComplain);
+  console.log(complainDetails)
+  // EventBridge params with the complainDetails
+  const params = {
+    Entries: [
+      {
+        Detail: complainDetails,
+        DetailType: "complainStatusUpdated", // Adjust the DetailType accordingly
+        Resources: [process.env.RULE_ARN_UBDATE], // Use the appropriate rule ARN
+        Source: "ticket",
+      },
+    ],
+  };
 
+  // Send the event to EventBridge
+  const data = await ebClient.send(new PutEventsCommand(params));
     res.json(result);
   } catch (error) {
     console.error(error);

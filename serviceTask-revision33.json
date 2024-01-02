@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:21",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:33",
     "containerDefinitions": [
         {
             "name": "service-backend",
-            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:5c9bc0c95e19b065a63cde9a1747b52f5bbd587d",
+            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:0c0f4088eb994c201399432e8a14070c754662d4",
             "cpu": 0,
             "portMappings": [
                 {
@@ -15,7 +15,12 @@
                 }
             ],
             "essential": true,
-            "environment": [],
+            "environment": [
+                {
+                    "name": "port",
+                    "value": "5000"
+                }
+            ],
             "environmentFiles": [
                 {
                     "value": "arn:aws:s3:::rakmun-servicebucket/.env",
@@ -28,17 +33,18 @@
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-create-group": "true",
-                    "awslogs-group": "/ecs/serviceTask",
+                    "awslogs-group": "/habd-overflow/ecs/serviceTask",
                     "awslogs-region": "me-south-1",
                     "awslogs-stream-prefix": "ecs"
-                }
+                },
+                "secretOptions": []
             }
         }
     ],
     "family": "serviceTask",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 21,
+    "revision": 33,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -78,13 +84,13 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "1024",
+    "cpu": "512",
     "memory": "3072",
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-12-28T09:35:42.166Z",
-    "registeredBy": "arn:aws:iam::945187596143:user/yarauser",
+    "registeredAt": "2024-01-02T06:38:08.894Z",
+    "registeredBy": "arn:aws:iam::945187596143:user/suhailuser",
     "tags": []
 }

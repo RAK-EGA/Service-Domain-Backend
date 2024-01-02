@@ -19,11 +19,13 @@
   "homepage": "https://github.com/RAK-EGA/service-Backend#readme",
   "dependencies": {
     "@aws-sdk/client-eventbridge": "^3.484.0",
+    "axios": "^1.6.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mongodb": "^6.3.0",
     "mongoose": "^8.0.3",
+    "node-cron": "^3.0.3",
     "nodemon": "^3.0.2",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",

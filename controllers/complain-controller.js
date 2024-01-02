@@ -1,5 +1,5 @@
 
-
+const axios = require('axios');
 const Complain = require("../model/Complain");
 const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 const { createEventBridgeClient } = require("../ebClient");
@@ -20,34 +20,57 @@ const submitComplain = async (req, res) => {
       complainName,
       voiceRecordAttachment,
       citizenID,
+      token
     } = req.body;
 
-    const newComplain = new Complain({
-      category,
-      subcategory,
-      description,
-      imageAttachment,
-      complainName,
-      voiceRecordAttachment,
-      citizenID,
-    });
-    await newComplain.save();
+      const customerMeResponse = await axios.get(
+        'https://rakmun-api.rakega.online/customer/me',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            // Add any other headers if needed
+          },
+        }
+      );
+      
+      // Handle the response here
+      // console.log(customerMeResponse.data);
+     
+    // Check if the customerMeResponse indicates success based on your API response structure
+    if (customerMeResponse.data.success) {
+      // If successful, proceed to save the new complain
+      const newComplain = new Complain({
+        category,
+        subcategory,
+        description,
+        imageAttachment,
+        complainName,
+        voiceRecordAttachment,
+        citizenID,
+      });
 
-    newComplain.complainName = `${category}_${newComplain._id}`;
-    
-    // Save the newComplain again to update the complainName
-    await newComplain.save();
-    const complainDetails = JSON.stringify(newComplain);
+      newComplain.citizenID = customerMeResponse.data.data.user.EID;
+      console.log("this eid")
+      console.log(customerMeResponse.data.data.user.EID)
+      
+      await newComplain.save();
 
-    
+      newComplain.complainName = `${category}_${newComplain._id}`;
 
-    // Send the event to EventBridge
-    await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted");
+      // Save the newComplain again to update the complainName
+      await newComplain.save();
 
-    res.json(newComplain);
+      const complainDetails = JSON.stringify(newComplain);
+
+      // Send the event to EventBridge
+      await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted");
+
+      res.json(newComplain);
+    }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(400).json({ error: "Failed to authenticate with customer service" });
   }
 };
 

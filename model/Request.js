@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 const requestSchema = new mongoose.Schema({
-    documentName: {
+    serviceName: {
       type: String,
     },
-    document: {
+    serviceDetails: {
         type: String,
     },
   }

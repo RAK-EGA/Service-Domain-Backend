@@ -29,7 +29,6 @@ const submitComplain = async (req, res) => {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
-            // Add any other headers if needed
           },
         }
       );

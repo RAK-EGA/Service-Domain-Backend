@@ -8,6 +8,8 @@ const complainRouter = require('./routes/complain-router.js');
 const cors = require('cors');
 const { sendToEventBridge } = require('./eventBridge.js');
 const cron = require('node-cron');
+const Request = require("./model/Request.js");
+const requestrouter = require('./routes/requests-router.js');
  
 const app = express();
 
@@ -21,11 +23,7 @@ app.use(express.json());
 app.use(cors());
 app.options('*', cors());
 
-const requestSchema = new mongoose.Schema({
-    serviceName: String,
-    serviceDetails: Object,
-  });
-const Request = mongoose.model('Request', requestSchema);
+
 const jsonData = 
 [
     {
@@ -111,6 +109,8 @@ const jsonData =
 
  
 app.use("/service/complaint", complainRouter);
+app.use("/service/request", requestrouter);
+
 const options = {
     definition: {
         openapi: "3.0.0",
@@ -150,34 +150,34 @@ mongoose
     );
 
 // Define the cron job
-const cronJob = cron.schedule('* * * * *', async () => {
-    console.log('Running cron job...');
-    // Loop through the JSON array and save each document to the "requests" collection
-    for (const service of jsonData) {
-      try {
-        // Extract information from the JSON object
-        const serviceID = service.service_id;
-        const serviceDetails = service;
-        if(serviceDetails.points!=0){
-            continue
-        }
-        // Create a new Mongoose document
-        const requestDocument = new Request({
-          serviceID,
-          serviceDetails,
-        });
+// const cronJob = cron.schedule('* * * * *', async () => {
+//     console.log('Running cron job...');
+//     // Loop through the JSON array and save each document to the "requests" collection
+//     for (const service of jsonData) {
+//       try {
+//         // Extract information from the JSON object
+//         const serviceID = service.service_id;
+//         const serviceDetails = service;
+//         if(serviceDetails.points!=0){
+//             continue
+//         }
+//         // Create a new Mongoose document
+//         const requestDocument = new Request({
+//           serviceID,
+//           serviceDetails,
+//         });
         
   
-        // Save the document to the "requests" collection
-        // await requestDocument.save();
+//         // Save the document to the "requests" collection
+//         // await requestDocument.save();
   
-        // console.log(`Saved: ${serviceID}`);
-      } catch (error) {
-        console.error(`Error saving document: ${error.message}`);
-      }
-    }
-  }, { scheduled: false, timezone: 'Africa/Cairo' });  // Set your timezone
+//         // console.log(`Saved: ${serviceID}`);
+//       } catch (error) {
+//         console.error(`Error saving document: ${error.message}`);
+//       }
+//     }
+//   }, { scheduled: false, timezone: 'Africa/Cairo' });  // Set your timezone
   
-  // Run the cron job once
-  cronJob.start();
+//   // Run the cron job once
+//   cronJob.start();
   

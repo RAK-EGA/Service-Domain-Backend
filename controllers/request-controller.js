@@ -1,113 +1,68 @@
 const Request = require("../model/Request.js");
 const axios = require('axios');
 
-const oneTimeJob = async (req, res) => {
-    
-    const instance = await Request.find();
-    if (instance.length == 0 || !instance || instance == null) {
-        try {
-            const response = await axios.get('https://rakmun-api.rakega.online/servicecatalog/get-all-services/');
-    
-            // Access the data from the response
-            const responseData = response.data;/////////////////////////loooooooooooooooooooop
-            // const serviceID = responseData.data.serviceID;
-            for (const service of responseData) {
-                try {
-                    const serviceeID = service.service_name;
-                    // console.log(service.service_id)
-                    const serviceDetails = service;
-                    console.log(service)
-                    if (serviceDetails.points != 0) {
-                        continue
-                    }
-                    // Create a new Mongoose document
-                    const requestDocument = new Request({
-                        serviceName : serviceeID ,
-                        serviceDetails,
-                    });
-    
-    
-                    // Save the document to the "requests" collection
-                    await requestDocument.save();
-    
-                    // console.log(`Saved: ${serviceID}`);
-                } catch (error) {
-                    console.error(`Error saving document: ${error.message}`);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error.message);
-        }
-        res.status(201).json({ message: "this job has been executed successfully" });
-    } else {
-        res.status(400).json({ message: "this job has already been done" });
-    }
-}
 
 const submitRequest = async (req, res) => {
     try {
-      const {
-        category,
-        subcategory,
-        description,
-        imageAttachment,
-        complainName,
-        voiceRecordAttachment,
-        citizenID,
-        token
-      } = req.body;
+      const { serviceDetails } = req.body;
   
-        const customerMeResponse = await axios.get(
-          'https://rakmun-api.rakega.online/customer/me',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              // Add any other headers if needed
-            },
+      // Parse and validate additional_fields
+      if (serviceDetails && serviceDetails.additional_fields && Array.isArray(serviceDetails.additional_fields)) {
+        for (const field of serviceDetails.additional_fields) {
+          if (field.condition) {
+            const conditionType = field.condition.condition_type;
+  
+            if (conditionType === "selection") {
+              // Check if the value is one of the allowed values
+              const allowedValues = field.condition.values;
+              const submittedValue = field.value;
+  
+              if (!allowedValues.includes(submittedValue)) {
+                return res.status(400).json({ error: "Can't submit your request. Invalid value for the field." });
+              }
+            } else if (conditionType === "min-max") {
+              // Check if the value is in the specified range
+              const [min, max] = field.condition.values;
+              const submittedValue = parseInt(field.value);
+  
+              if (submittedValue < min || submittedValue > max) {
+                return res.status(400).json({ error: "Can't submit your request. Value is out of range." });
+              }
+            }
           }
-        );
-        
-        // Handle the response here
-        // console.log(customerMeResponse.data);
-       
-      // Check if the customerMeResponse indicates success based on your API response structure
-      if (customerMeResponse.data.success) {
-        // If successful, proceed to save the new complain
-        const newComplain = new Complain({
-          category,
-          subcategory,
-          description,
-          imageAttachment,
-          complainName,
-          voiceRecordAttachment,
-          citizenID,
-        });
   
-        newComplain.citizenID = customerMeResponse.data.data.user.EID;
-        console.log("this eid")
-        console.log(customerMeResponse.data.data.user.EID)
-        
-        await newComplain.save();
+          // Check if the type is "document" and ai_compatible is true
+          if (field.field_type === "document" && field.is_ai_compatible) {
+            // Call the external API to get document fields
+            try {
+              const aiResponse = await axios.post('http://rakmun-api.rakega.online/read', {
+                value: field.value,
+                documentType: field.field_name//@todo make sure field name is correct"
+              });
   
-        newComplain.complainName = `${category}_${newComplain._id}`;
-  
-        // Save the newComplain again to update the complainName
-        await newComplain.save();
-  
-        const complainDetails = JSON.stringify(newComplain);
-  
-        // Send the event to EventBridge
-        await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted");
-  
-        res.json(newComplain);
+              // Update the "fields" attribute with the AI response
+              field.fields = aiResponse.data;
+            } catch (aiError) {
+              console.error(aiError);
+              return res.status(500).json({ error: "Error fetching document fields from external API." });
+            }
+          }
+        }
       }
+  
+      // Continue with the rest of your request submission logic
+  
+      // ...
+  
+      res.json({ success: true, message: "Request submitted successfully!" });
     } catch (error) {
       console.error(error);
-      res.status(400).json({ error: "Failed to authenticate with customer service" });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   };
+  
 
+  
 module.exports = {
-    oneTimeJob,
+    submitRequest,
 }

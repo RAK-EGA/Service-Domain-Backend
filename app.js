@@ -8,8 +8,9 @@ const complainRouter = require('./routes/complain-router.js');
 const cors = require('cors');
 const { sendToEventBridge } = require('./eventBridge.js');
 const cron = require('node-cron');
-const Request = require("./model/Request.js");
-const requestrouter = require('./routes/requests-router.js');
+const Service = require("./model/Service.js");
+const servicerouter = require('./routes/services-router.js');
+const requestrouter = require('./routes/request-router.js');
  
 const app = express();
 
@@ -109,6 +110,7 @@ const jsonData =
 
  
 app.use("/service/complaint", complainRouter);
+app.use("/service/service", servicerouter);
 app.use("/service/request", requestrouter);
 
 const options = {

@@ -11,6 +11,7 @@ const cron = require('node-cron');
 const Service = require("./model/Service.js");
 const servicerouter = require('./routes/services-router.js');
 const requestrouter = require('./routes/request-router.js');
+const axios = require("axios");
  
 const app = express();
 
@@ -25,90 +26,6 @@ app.use(cors());
 app.options('*', cors());
 
 
-const jsonData = 
-[
-    {
-        "service_id": "SV01",
-        "additional_fields": [
-            {
-                "field_name": "Scanned Image of Passport",
-                "field_type": "document",
-                "is_required": true,
-                "is_ai_compatible": true
-            },
-            {
-                "condition": {
-                    "condition_type": "selection",
-                    "values": [
-                        "UAE",
-                        "EGY"
-                    ]
-                },
-                "field_name": "Nationality",
-                "field_type": "text",
-                "is_required": true,
-                "is_ai_compatible": false
-            },
-            {
-                "condition": {
-                    "condition_type": "min-max",
-                    "values": [
-                        18,
-                        120
-                    ]
-                },
-                "field_name": "Age",
-                "field_type": "meta",
-                "is_required": false,
-                "is_ai_compatible": false
-            }
-        ],
-        "service_name": "Plot Request",
-        "service_type": "Request",
-        "department": "Housing",
-        "sla_value": 30,
-        "sla_unit": "Days",
-        "description": "This application allows the issuance of a residential plot under the approval of Emiri Diwan \nThe applicant must meet the following conditions to get approval: \n-Meets the Legal Age \n-UAE or EGY Citizenship",
-        "points": 0
-    },
-    {
-        "service_id": "SV02",
-        "additional_fields": [],
-        "service_name": "Power Outage",
-        "service_type": "Complaint",
-        "department": "Electricity",
-        "sla_value": 1,
-        "sla_unit": "Hour",
-        "description": "This service allows citizens to submit complaints regarding power outages in their area",
-        "points": 50
-    },
-    {
-        "service_id": "SV03",
-        "additional_fields": [
-            {
-                "field_name": "Scanned Image of Passport",
-                "field_type": "document",
-                "is_required": true,
-                "is_ai_compatible": true
-            },
-            {
-                "field_name": "Scanned Image of  Valid Trade License",
-                "field_type": "document",
-                "is_required": true,
-                "is_ai_compatible": false
-            }
-        ],
-        "service_name": "Health Card Issuance",
-        "service_type": "Request",
-        "department": "Health",
-        "sla_value": 4,
-        "sla_unit": "Days",
-        "description": "This application allows the issuance of Health Cards for employees of both Food & Other Public Health Establishments, to ensure that they are free from any infectious diseases before starting to work , in case of having a new employee or if the card is expired. \nThe applicant must meet the following conditions to get approval: \n- Provide a Copy of Passport \n- Provide Copy of Valid Trade License",
-        "points": 0
-    }
-];
-
- 
 app.use("/service/complaint", complainRouter);
 app.use("/service/service", servicerouter);
 app.use("/service/request", requestrouter);
@@ -137,6 +54,19 @@ app.use(
     swaggerui.setup(spacs)
 );
  
+
+cron.schedule('* * * * *', async () => {
+    try {
+        const running = await axios.post('https://rakmun-api.rakega.online/service/request/checkSla', {   
+        });
+
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Error fetching document fields from external API." });
+      }
+    
+})
+
 mongoose
     .connect(
         'mongodb+srv://YaraSamy:Service123456@cluster0.71gqs0y.mongodb.net/?retryWrites=true&w=majority'

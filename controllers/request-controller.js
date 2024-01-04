@@ -69,9 +69,7 @@ const submitRequest = async (req, res) => {
     }
   };
   
-  const checkSla = () => {
-    // Define the cron schedule to run every hour
-    cron.schedule('0 * * * *', async () => {
+  const checkSla = async() => {
       try {
         // Fetch all requests from the database
         const requests = await Request.find();
@@ -98,7 +96,7 @@ const submitRequest = async (req, res) => {
       } catch (error) {
         console.error(error);
       }
-    });
+    
   };
   
 module.exports = {

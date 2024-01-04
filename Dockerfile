@@ -10,7 +10,7 @@ COPY . .
 # Install dependencies
 RUN npm install
 # Make port 3000 available to the world outside this container
-EXPOSE 5000
+EXPOSE 3000
 # Start the Node Native app
 CMD node app.js
 

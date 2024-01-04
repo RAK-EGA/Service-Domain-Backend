@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:33",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:40",
     "containerDefinitions": [
         {
             "name": "service-backend",
-            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:0c0f4088eb994c201399432e8a14070c754662d4",
+            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:ceff15e536bbd9a4c7eec05c4aef99219c46f954",
             "cpu": 0,
             "portMappings": [
                 {
@@ -42,9 +42,10 @@
         }
     ],
     "family": "serviceTask",
+    "taskRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 33,
+    "revision": 40,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -62,6 +63,9 @@
         },
         {
             "name": "ecs.capability.env-files.s3"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
         },
         {
             "name": "ecs.capability.execution-role-ecr-pull"
@@ -90,7 +94,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2024-01-02T06:38:08.894Z",
+    "registeredAt": "2024-01-04T08:04:42.388Z",
     "registeredBy": "arn:aws:iam::945187596143:user/suhailuser",
     "tags": []
 }

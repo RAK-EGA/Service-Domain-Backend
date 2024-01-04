@@ -63,6 +63,12 @@ const complainSchema = new mongoose.Schema({
   Location: {
     type: String,
   },
+  Rate: {
+    type: Number,
+  },
+  feedback: {
+    type: String,
+  },
 }
 ,{
   timestamps: true

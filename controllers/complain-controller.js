@@ -148,6 +148,7 @@ const getInProgressComplains = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const getComplainsByCitizen = async (req, res) => {
   try {
     const { citizenID } = req.params;
@@ -198,7 +199,34 @@ const filterAndSortTickets = async (req, res) => {
   }
 };
 
+const addFeedback = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { feedback } = req.body;
+    const { Rate } = req.body;
 
+    const updatedComplain = await Complain.findByIdAndUpdate(
+      id,
+      { feedback, Rate },
+      { new: true }
+    );
+
+    if (!updatedComplain) {
+      return res.status(404).json({ error: "Complain not found" });
+    }
+  const result = await Complain.findById(updatedComplain._id)
+  console.log(updatedComplain)
+  const complainDetails = JSON.stringify(updatedComplain);
+  console.log(complainDetails)
+
+  // Send the event to EventBridge
+  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated");
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 module.exports = {
   submitComplain,
@@ -207,5 +235,6 @@ module.exports = {
   getAllComplain,
   filterAndSortTickets,
   getInProgressComplains,
-  getComplainsByCitizen
+  getComplainsByCitizen,
+  addFeedback,
 };

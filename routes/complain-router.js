@@ -220,7 +220,8 @@ const {
   getAllComplain,
   filterAndSortTickets,
   getInProgressComplains,
-  getComplainsByCitizen
+  getComplainsByCitizen,
+  addFeedback,
 } = require("../controllers/complain-controller.js");
 
 const complainrouter = express.Router();
@@ -233,5 +234,7 @@ complainrouter.get("/view/:id", getComplain);
 complainrouter.get('/filter/:searchString',filterAndSortTickets);
 complainrouter.get('/viewInProgress',getInProgressComplains);
 complainrouter.get('/viewComplaintsByCitizen/:citizenID',getComplainsByCitizen);
+complainrouter.put('/addFeedback/:id',addFeedback);
+
 
 module.exports = complainrouter;

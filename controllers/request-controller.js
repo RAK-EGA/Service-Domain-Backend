@@ -1,11 +1,14 @@
 const Request = require("../model/Request.js");
 const axios = require('axios');
+const cron = require('node-cron');
+const {sendToEventBridge} = require('../eventBridge.js')
 
 
 const submitRequest = async (req, res) => {
     try {
       const { serviceDetails } = req.body;
-  
+    console.log("*******************");
+    console.log(serviceDetails);
       // Parse and validate additional_fields
       if (serviceDetails && serviceDetails.additional_fields && Array.isArray(serviceDetails.additional_fields)) {
         for (const field of serviceDetails.additional_fields) {
@@ -35,13 +38,13 @@ const submitRequest = async (req, res) => {
           if (field.field_type === "document" && field.is_ai_compatible) {
             // Call the external API to get document fields
             try {
-              const aiResponse = await axios.post('http://rakmun-api.rakega.online/read', {
+              const aiResponse = await axios.post('https://rakmun-api.rakega.online/documents/read', {
                 value: field.value,
-                documentType: field.field_name//@todo make sure field name is correct"
+                documentType: field.document_type//@todo make sure field name is correct"
               });
   
               // Update the "fields" attribute with the AI response
-              field.fields = aiResponse.data;
+              field.AI_fields = aiResponse.data;
             } catch (aiError) {
               console.error(aiError);
               return res.status(500).json({ error: "Error fetching document fields from external API." });
@@ -50,9 +53,14 @@ const submitRequest = async (req, res) => {
         }
       }
   
-      // Continue with the rest of your request submission logic
-  
-      // ...
+      const newRequest = new Request({
+        citizenID,
+        serviceName,
+        serviceDetails 
+      });
+
+      await newRequest.save();
+
   
       res.json({ success: true, message: "Request submitted successfully!" });
     } catch (error) {
@@ -61,8 +69,39 @@ const submitRequest = async (req, res) => {
     }
   };
   
-
+  const checkSla = () => {
+    // Define the cron schedule to run every hour
+    cron.schedule('0 * * * *', async () => {
+      try {
+        // Fetch all requests from the database
+        const requests = await Request.find();
+  
+        // Check SLA for each request
+        for (const request of requests) {
+          const createdTime = request.createdAt;
+          const currentTime = new Date();
+          const slaTime = request.serviceDetails.sla_value;
+          const timeDifference = currentTime - createdTime;
+  
+          if (timeDifference > slaTime * 60 * 60 * 1000) { // Convert SLA time to milliseconds
+            // SLA exceeded, send to SQS
+            const exceededRequest = {
+              requestId: request._id,
+              slaExceededTime: timeDifference / (60 * 60 * 1000), // Convert to hours
+              // Add other relevant fields from the request
+            };
+  
+            // Send to EventBridge
+            await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  };
   
 module.exports = {
     submitRequest,
+    checkSla,
 }

@@ -1,15 +1,15 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:40",
+    "taskDefinitionArn": "arn:aws:ecs:me-south-1:945187596143:task-definition/serviceTask:44",
     "containerDefinitions": [
         {
             "name": "service-backend",
-            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:ceff15e536bbd9a4c7eec05c4aef99219c46f954",
+            "image": "945187596143.dkr.ecr.me-south-1.amazonaws.com/backend:9ec1ddea6b9cdbb72fa8560eb33e2cc28445e6be",
             "cpu": 0,
             "portMappings": [
                 {
                     "name": "service-backend-80-tcp",
-                    "containerPort": 5000,
-                    "hostPort": 5000,
+                    "containerPort": 3000,
+                    "hostPort": 3000,
                     "protocol": "tcp",
                     "appProtocol": "http"
                 }
@@ -18,7 +18,7 @@
             "environment": [
                 {
                     "name": "port",
-                    "value": "5000"
+                    "value": "3000"
                 }
             ],
             "environmentFiles": [
@@ -45,7 +45,7 @@
     "taskRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::945187596143:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 40,
+    "revision": 44,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -94,7 +94,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2024-01-04T08:04:42.388Z",
+    "registeredAt": "2024-01-04T08:29:16.603Z",
     "registeredBy": "arn:aws:iam::945187596143:user/suhailuser",
     "tags": []
 }

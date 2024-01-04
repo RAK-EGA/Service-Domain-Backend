@@ -7,6 +7,7 @@ const swaggerui = require("swagger-ui-express");
 const complainRouter = require('./routes/complain-router.js');
 const cors = require('cors');
 const { sendToEventBridge } = require('./eventBridge.js');
+const { checkSla  } = require('./controllers/request-controller.js');
 const cron = require('node-cron');
 const Service = require("./model/Service.js");
 const servicerouter = require('./routes/services-router.js');
@@ -57,15 +58,12 @@ app.use(
 
 cron.schedule('* * * * *', async () => {
     try {
-        const running = await axios.post('https://rakmun-api.rakega.online/service/request/checkSla', {   
-        });
-
-      } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Error fetching document fields from external API." });
-      }
-    
-})
+      await checkSla();
+      console.log('checkSla executed successfully.');
+    } catch (error) {
+      console.error('Error executing checkSla:', error);
+    }
+  });
 
 mongoose
     .connect(

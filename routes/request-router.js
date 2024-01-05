@@ -2,9 +2,17 @@ const express = require("express");
 const requestrouter = express.Router();
 const {submitRequest} = require("../controllers/request-controller");
 const {getAllRequests} = require("../controllers/request-controller");
+const {filterAndSortRequests} = require("../controllers/request-controller");
+const {getRequest} = require("../controllers/request-controller");
+const {getInProgressRequests} = require("../controllers/request-controller");
+const {updateRequestStatus} = require("../controllers/request-controller");
 
 requestrouter.post("/submitRequest", submitRequest);
-requestrouter.post("/getAllRequests", getAllRequests);
+requestrouter.get("/getAllRequests", getAllRequests);
+requestrouter.get("/filter/:id", filterAndSortRequests);
+requestrouter.get("/getRequest/:id", getRequest);
+requestrouter.get("/getInProgressRequests", getInProgressRequests);
+requestrouter.put("/updateRequest/:id", updateRequestStatus);
 
 
 

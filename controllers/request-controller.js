@@ -6,12 +6,12 @@ const {sendToEventBridge} = require('../eventBridge.js')
 
 const submitRequest = async (req, res) => {
     try {
-      const { serviceDetails } = req.body;
+      const  {additional_fields}  = req.body;
     console.log("*******************");
-    console.log(serviceDetails);
+    console.log(additional_fields);
       // Parse and validate additional_fields
-      if (serviceDetails && serviceDetails.additional_fields && Array.isArray(serviceDetails.additional_fields)) {
-        for (const field of serviceDetails.additional_fields) {
+      if (additional_fields  && Array.isArray(additional_fields)) {
+        for (const field of additional_fields) {
           if (field.condition) {
             const conditionType = field.condition.condition_type;
   
@@ -38,11 +38,13 @@ const submitRequest = async (req, res) => {
           if (field.field_type === "document" && field.is_ai_compatible) {
             // Call the external API to get document fields
             try {
-              const aiResponse = await axios.post('http://15.185.215.164:5000/read-id', {
-                value: field.value,
-                documentType: field.document_type//@todo make sure field name is correct"
+              const aiResponse = await axios.post('https://rakmun-api.rakega.online/models/read-id', {
+                image: field.value,
+                category: field.document_type//@todo make sure field name is correct"
               });
   
+              console.log(field.value);
+              console.log(field.document_type);
               // Update the "fields" attribute with the AI response
               field.AI_fields = aiResponse.data;
             } catch (aiError) {
@@ -54,9 +56,9 @@ const submitRequest = async (req, res) => {
       }
   
       const newRequest = new Request({
-        citizenID,
-        serviceName,
-        serviceDetails 
+        citizenID: req.body.citizenID,
+        serviceName: req.body.serviceName,
+        serviceDetails: additional_fields 
       });
 
       await newRequest.save();
@@ -143,10 +145,71 @@ const getInProgressRequests = async (req, res) => {
   }
 };
 
+
+const filterAndSortRequests = async (req, res) => {
+  try {
+    let searchString = req.params.searchString;
+
+    const regex = new RegExp(searchString, 'i');
+    searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
+
+  
+    const tickets = await Request.find({
+      $and: [
+        {
+          $or: [
+            { citizenID: { $regex: searchString } },
+            { serviceName: { $regex: searchString } },
+            { status: { $regex: searchString } },
+            { serviceDetails: { $regex: searchString } },
+          ],
+        },
+        { status: "OPEN" }, 
+      ],
+    })
+      .sort({ createdAt: -1 }); 
+
+    res.json(tickets);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const updateRequestStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const updatedRequest = await Request.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+    
+    if (!updatedRequest) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    const result = await Request.findById(updatedRequest._id)
+    console.log(updatedRequest)
+    const requestDetails = JSON.stringify(updatedRequest);
+    console.log(requestDetails)
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
 module.exports = {
     submitRequest,
     checkSla,
     getAllRequests,
     getRequest,
     getInProgressRequests,
+    filterAndSortRequests,
+    updateRequestStatus,
 }

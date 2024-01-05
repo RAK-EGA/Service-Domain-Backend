@@ -7,8 +7,8 @@ const {sendToEventBridge} = require('../eventBridge.js')
 const submitRequest = async (req, res) => {
     try {
       const  {additional_fields}  = req.body;
-    console.log("*******************");
-    console.log(additional_fields);
+    // console.log("*******************");
+    // console.log(additional_fields);
       // Parse and validate additional_fields
       if (additional_fields  && Array.isArray(additional_fields)) {
         for (const field of additional_fields) {
@@ -43,10 +43,12 @@ const submitRequest = async (req, res) => {
                 category: field.document_type//@todo make sure field name is correct"
               });
   
-              console.log(field.value);
-              console.log(field.document_type);
+              // console.log(field.value);
+              // console.log(field.document_type);
               // Update the "fields" attribute with the AI response
               field.AI_fields = aiResponse.data;
+              console.log("*******************");
+              console.log(aiResponse.data);
             } catch (aiError) {
               console.error(aiError);
               return res.status(500).json({ error: "Error fetching document fields from external API." });
@@ -71,34 +73,65 @@ const submitRequest = async (req, res) => {
     }
   };
   
-  const checkSla = async() => {
-      try {
-        // Fetch all requests from the database
-        const requests = await Request.find();
+  // const checkSla = async() => {
+  //     try {
+  //       // Fetch all requests from the database
+  //       const requests = await Request.find();
   
-        // Check SLA for each request
-        for (const request of requests) {
-          const createdTime = request.createdAt;
-          const currentTime = new Date();
-          const slaTime = request.serviceDetails.sla_value;
-          const timeDifference = currentTime - createdTime;
+  //       // Check SLA for each request
+  //       for (const request of requests) {
+  //         const createdTime = request.createdAt;
+  //         const currentTime = new Date();
+  //         const slaTime = request.serviceDetails.sla_value;
+  //         const timeDifference = currentTime - createdTime;
   
-          if (timeDifference > slaTime * 60 * 60 * 1000) { // Convert SLA time to milliseconds
-            // SLA exceeded, send to SQS
-            const exceededRequest = {
-              requestId: request._id,
-              slaExceededTime: timeDifference / (60 * 60 * 1000), // Convert to hours
-              // Add other relevant fields from the request
-            };
+  //         if (timeDifference > slaTime * 60 * 60 * 1000) { // Convert SLA time to milliseconds
+  //           // SLA exceeded, send to SQS
+  //           const exceededRequest = {
+  //             requestId: request._id,
+  //             slaExceededTime: timeDifference / (60 * 60 * 1000), // Convert to hours
+  //             // Add other relevant fields from the request
+  //           };
   
-            // Send to EventBridge
-            await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded","checkSla");
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
+  //           // Send to EventBridge
+  //           await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded","checkSla");
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
     
+  // };
+  
+
+  const checkSla = async () => {
+    // try {
+      // Fetch all requests from the database
+      // const requests = await Request.find();
+  
+      // // Check SLA for each request
+      // for (const request of requests) {
+      //   const createdTime = new Date(request.createdAt); // Parse the createdAt field
+      //   const currentTime = new Date();
+      //   const slaTime = request.serviceDetails.sla_value;
+      //   const timeDifference = currentTime - createdTime;
+  
+      //   if (timeDifference > slaTime * 60 * 60 * 1000) {
+      //     // Convert SLA time to milliseconds
+      //     // SLA exceeded, send to SQS
+      //     const exceededRequest = {
+      //       requestId: request._id,
+      //       slaExceededTime: timeDifference / (60 * 60 * 1000), // Convert to hours
+      //       // Add other relevant fields from the request
+      //     };
+  
+          // Send to EventBridge
+          await sendToEventBridge("exceededRequest", process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
+        // }
+      // }
+    // } catch (error) {
+    //   console.error(error);
+    // }
   };
   
 const getAllRequests = async (req, res) => {

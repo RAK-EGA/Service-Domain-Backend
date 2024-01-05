@@ -24,6 +24,8 @@ const oneTimeJob = async (req, res) => {
                     const serviceDocument = new Service({
                         serviceName : serviceName ,
                         serviceDetails,
+                        sla_value: service.sla_value,
+                        sla_unit: service.sla_unit,
                     });
     
     

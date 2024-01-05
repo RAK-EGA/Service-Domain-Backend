@@ -4,6 +4,7 @@ const { ebClient } = require("./ebClient");
 
 const sendToEventBridge = async (newObject, ruleARN, DetailType,source) => {
   try {
+    console.log(newObject);
     // Convert the complain object to a JSON string
     const objectDetails = JSON.stringify(newObject);
 

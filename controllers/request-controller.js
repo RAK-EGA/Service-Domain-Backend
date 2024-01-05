@@ -7,6 +7,8 @@ const {sendToEventBridge} = require('../eventBridge.js')
 const submitRequest = async (req, res) => {
     try {
       const  {additional_fields}  = req.body;
+      const {sla_value} = req.body;
+      const {sla_unit} = req.body;
     // console.log("*******************");
     // console.log(additional_fields);
       // Parse and validate additional_fields
@@ -60,7 +62,9 @@ const submitRequest = async (req, res) => {
       const newRequest = new Request({
         citizenID: req.body.citizenID,
         serviceName: req.body.serviceName,
-        serviceDetails: additional_fields 
+        serviceDetails: additional_fields,
+          sla_value: sla_value,
+          sla_unit: sla_unit,
       });
 
       await newRequest.save();
@@ -104,36 +108,81 @@ const submitRequest = async (req, res) => {
   // };
   
 
+  // const checkSla = async () => {
+  //   console.log("inside check sla");
+  //   try {
+  //     //Fetch all requests from the database
+  //     const requests = await Request.find();
+  //     console.log(requests);
+  //     // Check SLA for each request
+  //     for (const request of requests) {
+  //       const createdTime = new Date(request.createdAt); // Parse the createdAt field
+  //       const currentTime = new Date();
+  //       const slaTime = request.sla_value;
+  //       const timeDifference = currentTime - createdTime;
+  
+  //       if (timeDifference > slaTime * 60 * 60 * 1000) {
+  //         // Convert SLA time to milliseconds
+  //         // SLA exceeded, send to SQS
+  //         const exceededRequest = {
+  //           requestId: request._id,
+  //           slaExceededTime: timeDifference / (60 * 60 * 1000), // Convert to hours
+  //           // Add other relevant fields from the request
+  //         };
+  //         console.log(exceededRequest);
+  //         // Send to EventBridge
+  //         await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+ 
   const checkSla = async () => {
-    // try {
+    console.log("inside check sla");
+    try {
       // Fetch all requests from the database
-      // const requests = await Request.find();
+      const requests = await Request.find();
+      console.log("requests..........................");
+      console.log(requests);
   
-      // // Check SLA for each request
-      // for (const request of requests) {
-      //   const createdTime = new Date(request.createdAt); // Parse the createdAt field
-      //   const currentTime = new Date();
-      //   const slaTime = request.serviceDetails.sla_value;
-      //   const timeDifference = currentTime - createdTime;
+      // Check SLA for each request
+      for (const request of requests) {
+        const createdTime = new Date(request.createdAt); // Parse the createdAt field
+        const currentTime = new Date();
+        const slaTime = request.sla_value;
+        const slaUnit = request.sla_unit;
   
-      //   if (timeDifference > slaTime * 60 * 60 * 1000) {
-      //     // Convert SLA time to milliseconds
-      //     // SLA exceeded, send to SQS
-      //     const exceededRequest = {
-      //       requestId: request._id,
-      //       slaExceededTime: timeDifference / (60 * 60 * 1000), // Convert to hours
-      //       // Add other relevant fields from the request
-      //     };
+        let slaMultiplier = 1; // Default multiplier is 1 (hours)
   
+        // Check the unit of SLA
+        if (slaUnit === 'Days') {
+          slaMultiplier = 24; // Convert days to hours
+        }
+  
+        const timeDifference = currentTime - createdTime;
+  
+        if (timeDifference > slaTime * slaMultiplier * 60 * 60 * 1000) {
+          // Convert SLA time to milliseconds
+          // SLA exceeded, send to SQS
+          const exceededRequest = {
+            requestId: request._id,
+            slaExceededTime: timeDifference / (slaMultiplier * 60 * 60 * 1000), // Convert to hours
+            // Add other relevant fields from the request
+          };
+          console.log(exceededRequest);
           // Send to EventBridge
-          await sendToEventBridge("exceededRequest", process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
-        // }
-      // }
-    // } catch (error) {
-    //   console.error(error);
-    // }
+          await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
   
+
+
 const getAllRequests = async (req, res) => {
     try {
       const requests = await Request.find();

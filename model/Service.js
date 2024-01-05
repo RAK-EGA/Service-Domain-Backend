@@ -17,5 +17,7 @@ const mongoose = require("mongoose");
 const serviceSchema = new mongoose.Schema({
   serviceName: String,
   serviceDetails: Object,
+  sla_value: Number,
+  sla_unit: String,
 });
 module.exports = mongoose.model('Service', serviceSchema);

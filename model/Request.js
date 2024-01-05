@@ -15,6 +15,12 @@ const requestSchema = new mongoose.Schema({
   serviceDetails: {
     type: Object,
   },
+  sla_value: {
+    type: Number,
+  },
+  sla_unit: {
+    type: String,
+  },
   
 }
 ,{

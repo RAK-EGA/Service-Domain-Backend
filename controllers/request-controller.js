@@ -38,7 +38,7 @@ const submitRequest = async (req, res) => {
           if (field.field_type === "document" && field.is_ai_compatible) {
             // Call the external API to get document fields
             try {
-              const aiResponse = await axios.post('https://rakmun-api.rakega.online/documents/read', {
+              const aiResponse = await axios.post('http://15.185.215.164:5000/read-id', {
                 value: field.value,
                 documentType: field.document_type//@todo make sure field name is correct"
               });
@@ -90,7 +90,7 @@ const submitRequest = async (req, res) => {
             };
   
             // Send to EventBridge
-            await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded");
+            await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded","checkSla");
           }
         }
       } catch (error) {
@@ -99,7 +99,54 @@ const submitRequest = async (req, res) => {
     
   };
   
+const getAllRequests = async (req, res) => {
+    try {
+      const requests = await Request.find();
+  
+      if (!requests) {
+        return res.status(404).json({ error: "Complain not found" });
+      }
+  
+      res.json(requests);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+};  
+const getRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await Request.findById(id);
+
+    if (!request) {
+      return res.status(404).json({ error: "Complain not found" });
+    }
+
+    res.json(request);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+const getInProgressRequests = async (req, res) => {
+  try {
+    const requests = await Request.find({ status: 'IN_PROGRESS' });
+
+    if (requests.length === 0) {
+      return res.status(404).json({ error: "No requests in progress found" });
+    }
+
+    res.json(requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
     submitRequest,
     checkSla,
+    getAllRequests,
+    getRequest,
+    getInProgressRequests,
 }

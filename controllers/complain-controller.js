@@ -63,7 +63,7 @@ const submitComplain = async (req, res) => {
       const complainDetails = JSON.stringify(newComplain);
 
       // Send the event to EventBridge
-      await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted");
+      await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
 
       res.json(newComplain);
     }
@@ -94,7 +94,7 @@ const updateComplainStatus = async (req, res) => {
   console.log(complainDetails)
 
   // Send the event to EventBridge
-  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated");
+  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated","update-ticket");
     res.json(result);
   } catch (error) {
     console.error(error);

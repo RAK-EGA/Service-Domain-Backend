@@ -2,7 +2,7 @@ const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 const { ebClient } = require("./ebClient");
 
 
-const sendToEventBridge = async (newObject, ruleARN, DetailType) => {
+const sendToEventBridge = async (newObject, ruleARN, DetailType,source) => {
   try {
     // Convert the complain object to a JSON string
     const objectDetails = JSON.stringify(newObject);
@@ -14,7 +14,7 @@ const sendToEventBridge = async (newObject, ruleARN, DetailType) => {
           Detail: objectDetails,
           DetailType: DetailType,
           Resources: [ruleARN],
-          Source: "ticket",
+          Source: source,
         },
       ],
     };

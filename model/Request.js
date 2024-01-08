@@ -21,6 +21,9 @@ const requestSchema = new mongoose.Schema({
   sla_unit: {
     type: String,
   },
+  requestName:{
+    type: String,
+  },
   
 }
 ,{

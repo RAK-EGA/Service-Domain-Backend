@@ -9,7 +9,7 @@ const {updateRequestStatus} = require("../controllers/request-controller");
 
 requestrouter.post("/submitRequest", submitRequest);
 requestrouter.get("/getAllRequests", getAllRequests);
-requestrouter.get("/filter/:id", filterAndSortRequests);
+requestrouter.get("/filter/:searchString", filterAndSortRequests);
 requestrouter.get("/getRequest/:id", getRequest);
 requestrouter.get("/getInProgressRequests", getInProgressRequests);
 requestrouter.put("/updateRequest/:id", updateRequestStatus);

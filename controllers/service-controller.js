@@ -52,8 +52,8 @@ const getServiceByName = async (req, res) => {
       const { serviceName } = req.body;
   
       // Query the database to find the service with the specified name
-      const service = await Request.findOne({ serviceName });
-  
+      const service = await Service.findOne({ serviceName });
+      
       // Check if the service was found
       if (service) {
         // Send the serviceDetails in the response body
@@ -72,11 +72,11 @@ const getServiceByName = async (req, res) => {
   const getServicesNames = async (req, res) => {
     try {
       // Query the database to get all documents
-      const allRequests = await Request.find();
+      const allRequests = await Service.find();
   
       // Extract unique service names
       const serviceNames = Array.from(new Set(allRequests.map(request => request.serviceName)));
-  
+      console.log(serviceNames);
       // Send the service names in the response body
       res.json({ serviceNames });
     } catch (error) {

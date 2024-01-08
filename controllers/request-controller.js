@@ -9,6 +9,7 @@ const submitRequest = async (req, res) => {
       const  {additional_fields}  = req.body;
       const {sla_value} = req.body;
       const {sla_unit} = req.body;
+      const {requestName}=req.body;
     // console.log("*******************");
     // console.log(additional_fields);
       // Parse and validate additional_fields
@@ -49,8 +50,8 @@ const submitRequest = async (req, res) => {
               // console.log(field.document_type);
               // Update the "fields" attribute with the AI response
               field.AI_fields = aiResponse.data;
-              console.log("*******************");
-              console.log(aiResponse.data);
+              //console.log("*******************");
+              //console.log(aiResponse.data);
             } catch (aiError) {
               console.error(aiError);
               return res.status(500).json({ error: "Error fetching document fields from external API." });
@@ -63,12 +64,18 @@ const submitRequest = async (req, res) => {
         citizenID: req.body.citizenID,
         serviceName: req.body.serviceName,
         serviceDetails: additional_fields,
-          sla_value: sla_value,
-          sla_unit: sla_unit,
+        sla_value: sla_value,
+        sla_unit: sla_unit,
+        requestName,
       });
 
       await newRequest.save();
+      
+      newRequest.requestName = `${newRequest.serviceName}_${newRequest._id}`;
+      console.log(newRequest);
 
+      // Save the newComplain again to update the complainName
+      await newRequest.save();
   
       res.json({ success: true, message: "Request submitted successfully!" });
     } catch (error) {
@@ -144,8 +151,8 @@ const submitRequest = async (req, res) => {
     try {
       // Fetch all requests from the database
       const requests = await Request.find();
-      console.log("requests..........................");
-      console.log(requests);
+      //console.log("requests..........................");
+      //console.log(requests);
   
       // Check SLA for each request
       for (const request of requests) {
@@ -171,7 +178,7 @@ const submitRequest = async (req, res) => {
             slaExceededTime: timeDifference / (slaMultiplier * 60 * 60 * 1000), // Convert to hours
             // Add other relevant fields from the request
           };
-          console.log(exceededRequest);
+          //console.log(exceededRequest);
           // Send to EventBridge
           await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
         }
@@ -231,8 +238,8 @@ const getInProgressRequests = async (req, res) => {
 const filterAndSortRequests = async (req, res) => {
   try {
     let searchString = req.params.searchString;
-
-    const regex = new RegExp(searchString, 'i');
+    console.log(searchString);
+    //const regex = new RegExp(searchString, 'i');
     searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
 
   

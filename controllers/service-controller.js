@@ -49,7 +49,7 @@ const oneTimeJob = async (req, res) => {
 const getServiceByName = async (req, res) => {
     try {
       // Retrieve serviceName from the request body
-      const { serviceName } = req.body;
+      const { serviceName } = req.params;
   
       // Query the database to find the service with the specified name
       const service = await Service.findOne({ serviceName });

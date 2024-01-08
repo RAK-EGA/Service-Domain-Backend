@@ -5,7 +5,7 @@ const {getServiceByName} = require("../controllers/service-controller");
 const {getServicesNames} = require("../controllers/service-controller");
 
 servicerouter.post("/onetime", oneTimeJob);
-servicerouter.get("/servicedetails", getServiceByName);
+servicerouter.get("/servicedetails/:serviceName", getServiceByName);
 servicerouter.get("/servicesnames", getServicesNames);
 
 module.exports = servicerouter;

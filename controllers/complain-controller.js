@@ -222,7 +222,7 @@ const addFeedback = async (req, res) => {
   console.log(complainDetails)
 
   // Send the event to EventBridge
-  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated");
+
     res.json(result);
   } catch (error) {
     console.error(error);

@@ -243,16 +243,6 @@ const filterAndSortRequests = async (req, res) => {
     console.log(searchString);
     searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
 
-    // const tickets = await Request.find({
-    //   $or: [
-    //     { citizenID: { $regex: searchString } },
-    //     { serviceName: { $regex: searchString } },
-    //     { status: { $regex: searchString } },
-    //     { serviceDetails: { $regex: searchString } },
-    //   ],
-    // })
-    // .sort({ isExceeded: -1, status: -1, createdAt: -1 });
-
     const tickets = await Request.aggregate([
       {
         $match: {
@@ -265,11 +255,26 @@ const filterAndSortRequests = async (req, res) => {
         },
       },
       {
+        $addFields: {
+          customStatusOrder: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$status", "OPEN"] }, then: 1 },
+                { case: { $eq: ["$status", "IN_PROGRESS"] }, then: 2 },
+                { case: { $eq: ["$status", "CANCELLED"] }, then: 3 },
+                { case: { $eq: ["$status", "RESOLVED"] }, then: 4 },
+              ],
+              default: 5,
+            },
+          },
+        },
+      },
+      {
         $sort: {
-          isExceeded: -1, // Sort by isExceeded in descending order
-          status: 1,      // Then sort by status in ascending order
-          createdAt: -1   // Finally, sort by createdAt in descending order
-        }
+          isExceeded: -1,
+          customStatusOrder: 1,
+          createdAt: -1,
+        },
       },
     ]);
 
@@ -279,6 +284,7 @@ const filterAndSortRequests = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 

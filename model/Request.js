@@ -24,6 +24,14 @@ const requestSchema = new mongoose.Schema({
   requestName:{
     type: String,
   },
+  resolutionTime:{
+    type: Number,
+  },
+  isExceeded:{
+    type: Boolean,
+    default: false,
+  },
+  
   
 }
 ,{

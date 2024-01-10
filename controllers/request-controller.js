@@ -190,8 +190,6 @@ const checkSla = async () => {
   }
 };
 
-
-
 const getAllRequests = async (req, res) => {
   try {
     const requests = await Request.find();
@@ -206,6 +204,7 @@ const getAllRequests = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const getRequest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -221,6 +220,7 @@ const getRequest = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const getInProgressRequests = async (req, res) => {
   try {
     const requests = await Request.find({ status: 'IN_PROGRESS' });
@@ -235,7 +235,6 @@ const getInProgressRequests = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 const filterAndSortRequests = async (req, res) => {
   try {
@@ -285,10 +284,6 @@ const filterAndSortRequests = async (req, res) => {
   }
 };
 
-
-
-
-
 const updateRequestStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -317,6 +312,7 @@ const updateRequestStatus = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 module.exports = {

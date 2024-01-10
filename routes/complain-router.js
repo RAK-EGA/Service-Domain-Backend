@@ -213,6 +213,11 @@
  */
 
 const express = require("express");
+const authenticateUser = require('../middlewares/UserAuthentication');
+
+
+
+
 const {
   submitComplain,
   updateComplainStatus,
@@ -227,7 +232,7 @@ const {
 const complainrouter = express.Router();
 
 // Define routes
-complainrouter.post("/submit", submitComplain);
+complainrouter.post("/submit", authenticateUser, submitComplain);
 complainrouter.put("/update/:id", updateComplainStatus);
 complainrouter.get("/view", getAllComplain);
 complainrouter.get("/view/:id", getComplain);

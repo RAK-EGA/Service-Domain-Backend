@@ -1,6 +1,7 @@
 
 const axios = require('axios');
 const Complain = require("../model/Complain");
+
 const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 const { createEventBridgeClient } = require("../ebClient");
 const {sendToEventBridge} = require('../eventBridge.js')
@@ -20,24 +21,15 @@ const submitComplain = async (req, res) => {
       complainName,
       voiceRecordAttachment,
       citizenID,
-      token
     } = req.body;
 
-      const customerMeResponse = await axios.get(
-        'https://rakmun-api.rakega.online/customer/me',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      
       
       // Handle the response here
       // console.log(customerMeResponse.data);
      
     // Check if the customerMeResponse indicates success based on your API response structure
-    if (customerMeResponse.data.success) {
+
       // If successful, proceed to save the new complain
       const newComplain = new Complain({
         category,
@@ -49,9 +41,8 @@ const submitComplain = async (req, res) => {
         citizenID,
       });
 
-      newComplain.citizenID = customerMeResponse.data.data.user.EID;
-      console.log("this eid")
-      console.log(customerMeResponse.data.data.user.EID)
+      
+      newComplain.citizenID = req.user.EID;
       
       await newComplain.save();
 
@@ -60,13 +51,12 @@ const submitComplain = async (req, res) => {
       // Save the newComplain again to update the complainName
       await newComplain.save();
 
-      const complainDetails = JSON.stringify(newComplain);
 
       // Send the event to EventBridge
       await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
 
       res.json(newComplain);
-    }
+    
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: "Failed to authenticate with customer service" });
@@ -134,6 +124,7 @@ const getComplain = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const getInProgressComplains = async (req, res) => {
   try {
     const complains = await Complain.find({ status: 'IN_PROGRESS' });
@@ -169,37 +160,52 @@ const getComplainsByCitizen = async (req, res) => {
   }
 };
 
-
 const filterAndSortTickets = async (req, res) => {
   try {
     let searchString = req.params.searchString;
 
-    const regex = new RegExp(searchString, 'i');
+    // const regex = new RegExp(searchString, 'i');
     searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
 
-  
-    const tickets = await Complain.find({
-      $and: [
-        {
+    const tickets = await Complain.aggregate([
+      {
+        $match: {
           $or: [
             { category: { $regex: searchString } },
             { subcategory: { $regex: searchString } },
-            { complainName: { $regex: searchString } },
+            { status: { $regex: searchString } },
           ],
         },
-        { status: "OPEN" }, 
-      ],
-    })
-      .sort({ createdAt: -1 }); 
-
+      },
+      {
+        $addFields: {
+          customStatusOrder: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$status", "OPEN"] }, then: 1 },
+                { case: { $eq: ["$status", "IN_PROGRESS"] }, then: 2 },
+                { case: { $eq: ["$status", "CANCELED"] }, then: 3 },
+                { case: { $eq: ["$status", "RESOLVED"] }, then: 4 },
+              ],
+              default: 5,
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          customStatusOrder: 1,
+          createdAt: -1,
+        },
+      },
+    ]);
+    
     res.json(tickets);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
-
 
 const addFeedback = async (req, res) => {
   try {
@@ -226,7 +232,7 @@ const addFeedback = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" }); 
   }
 };
 

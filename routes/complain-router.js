@@ -239,7 +239,7 @@ complainrouter.get("/view/:id", getComplain);
 complainrouter.get('/filter/:searchString',filterAndSortTickets);
 complainrouter.get('/viewInProgress',getInProgressComplains);
 complainrouter.get('/viewComplaintsByCitizen/:citizenID',getComplainsByCitizen);
-complainrouter.put('/addFeedback/:id',addFeedback);
+complainrouter.put('/addFeedback/:id', authenticateUser, addFeedback);
 
 
 module.exports = complainrouter;

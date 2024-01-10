@@ -156,6 +156,7 @@ const checkSla = async () => {
 
     // Check SLA for each request
     for (const request of requests) {
+      if(  request.status === "IN_PROGRESS" || request.status === "OPEN"  ){
       const createdTime = new Date(request.createdAt); // Parse the createdAt field
       const currentTime = new Date();
       const slaTime = request.sla_value;
@@ -185,6 +186,7 @@ const checkSla = async () => {
         await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
       }
     }
+  }
   } catch (error) {
     console.error(error);
   }

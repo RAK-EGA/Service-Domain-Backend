@@ -222,6 +222,11 @@ const addFeedback = async (req, res) => {
     if (!updatedComplain) {
       return res.status(404).json({ error: "Complain not found" });
     }
+
+    if (updatedComplain.status !== "RESOLVED") {
+      return res.status(404).json({ error: "Complain not resolved yet" });
+    }
+
   const result = await Complain.findById(updatedComplain._id)
   console.log(updatedComplain)
   const complainDetails = JSON.stringify(updatedComplain);

@@ -156,7 +156,7 @@ const checkSla = async () => {
 
     // Check SLA for each request
     for (const request of requests) {
-      if(  request.status !==  "RESOLVED" ){
+      if(  request.status === "IN_PROGRESS" || request.status === "OPEN"  ){
       const createdTime = new Date(request.createdAt); // Parse the createdAt field
       const currentTime = new Date();
       const slaTime = request.sla_value;

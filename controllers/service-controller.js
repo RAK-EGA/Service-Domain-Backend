@@ -1,3 +1,4 @@
+
 const Service = require("../model/Service.js");
 const axios = require('axios');
 
@@ -13,19 +14,18 @@ const oneTimeJob = async (req, res) => {
             // const serviceID = responseData.data.serviceID;
             for (const service of responseData) {
                 try {
-                    const serviceName = service.service_name;
+                    const service_name = service.service_name;
                     // console.log(service.service_id)
-                    const serviceDetails = service;
+                    const additional_fields = service.additional_fields;
                     console.log(service)
-                    if (serviceDetails.points != 0) {
-                        continue
-                    }
                     // Create a new Mongoose document
                     const serviceDocument = new Service({
-                        serviceName : serviceName ,
-                        serviceDetails,
+                        service_name : service_name ,
+                        additional_fields,
                         sla_value: service.sla_value,
                         sla_unit: service.sla_unit,
+                        service_type: service.service_type,
+                        points: service.points,
                     });
     
     
@@ -47,36 +47,50 @@ const oneTimeJob = async (req, res) => {
 }
 
 const getServiceByName = async (req, res) => {
+  try {
+    // Retrieve serviceName from the request params
+    const { service_name } = req.params;
+
+    // Query the database to find the service with the specified name
+    const service = await Service.findOne({ service_name });
+
+    // Check if the service was found
+    if (service) {
+      // Send the service details in the response body
+      res.json(service);
+    } else {
+      // If service is not found, return an appropriate response
+      res.status(404).json({ error: 'Service not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+  const getRequestsNames = async (req, res) => {
     try {
-      // Retrieve serviceName from the request body
-      const { serviceName } = req.params;
-  
-      // Query the database to find the service with the specified name
-      const service = await Service.findOne({ serviceName });
+      // Query the database to get all documents
+      const allRequests = await Service.find({ service_type: "Request" });
       
-      // Check if the service was found
-      if (service) {
-        // Send the serviceDetails in the response body
-        res.json({ serviceDetails: service.serviceDetails });
-      } else {
-        // If service is not found, return an appropriate response
-        res.status(404).json({ error: 'Service not found' });
-      }
+      // Extract unique service names
+      const serviceNames = Array.from(new Set(allRequests.map(request => request.service_name)));
+      // console.log(serviceNames);
+      // Send the service names in the response body
+      res.json({ serviceNames });
     } catch (error) {
-      console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   };
 
-
-  const getServicesNames = async (req, res) => {
+  const getComplainsNames = async (req, res) => {
     try {
       // Query the database to get all documents
-      const allRequests = await Service.find();
-  
+      const allRequests = await Service.find( {  service_type: "Complaint"});
+      
       // Extract unique service names
-      const serviceNames = Array.from(new Set(allRequests.map(request => request.serviceName)));
-      console.log(serviceNames);
+      const serviceNames = Array.from(new Set(allRequests.map(request => request.service_name)));
+      // console.log(serviceNames);
       // Send the service names in the response body
       res.json({ serviceNames });
     } catch (error) {
@@ -85,10 +99,9 @@ const getServiceByName = async (req, res) => {
   };
 
 
-
-
 module.exports = {
     oneTimeJob,
     getServiceByName,
-    getServicesNames,
+    getRequestsNames,
+    getComplainsNames,
 }

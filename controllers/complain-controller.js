@@ -13,49 +13,41 @@ const {sendToEventBridge} = require('../eventBridge.js')
 
 const submitComplain = async (req, res) => {
   try {
-    const {
+    const category  = req.body.department;
+    const { citizenID } = req.body;
+    const  subcategory  = req.body.service_name;
+    const { additional_fields } = req.body;
+    const { sla_value } = req.body;
+    const { sla_unit } = req.body;
+    const {points} = req.body;
+
+    const complain = new Complain({
       category,
-      subcategory,
-      description,
-      imageAttachment,
-      complainName,
-      voiceRecordAttachment,
       citizenID,
-    } = req.body;
+      subcategory,
+      additional_fields,
+      sla_value,
+      sla_unit,
+      description: "",
+      points,
+    });
 
-      
-      
-      // Handle the response here
-      // console.log(customerMeResponse.data);
-     
-    // Check if the customerMeResponse indicates success based on your API response structure
+    //loop over additional fields to get the description
+    for (const field of additional_fields) {
+      if (field.field_name === "Description") {
+        complain.description = field.value;
+      }
+    }
+    console.log(complain.description)
 
-      // If successful, proceed to save the new complain
-      const newComplain = new Complain({
-        category,
-        subcategory,
-        description,
-        imageAttachment,
-        complainName,
-        voiceRecordAttachment,
-        citizenID,
-      });
+    const savedComplain = await complain.save();
 
-      
-      newComplain.citizenID = req.user.EID;
-      
-      await newComplain.save();
+    const complainDetails = JSON.stringify(savedComplain);
+    console.log(complainDetails)
 
-      newComplain.complainName = `${category}_${newComplain._id}`;
-
-      // Save the newComplain again to update the complainName
-      await newComplain.save();
-
-
-      // Send the event to EventBridge
-      await sendToEventBridge(newComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
-
-      res.json(newComplain);
+    // Send the event to EventBridge
+    await sendToEventBridge(savedComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
+    res.json(savedComplain);
     
   } catch (error) {
     console.error(error);

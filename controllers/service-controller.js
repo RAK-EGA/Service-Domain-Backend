@@ -15,9 +15,12 @@ const oneTimeJob = async (req, res) => {
             for (const service of responseData) {
                 try {
                     const service_name = service.service_name;
+                    const { description } = service;
+                    console.log(service, 1)
+                    console.log(service.description, 2)
                     // console.log(service.service_id)
                     const additional_fields = service.additional_fields;
-                    console.log(service)
+                    console.log(service.description)
                     // Create a new Mongoose document
                     const serviceDocument = new Service({
                         service_name : service_name ,
@@ -25,6 +28,7 @@ const oneTimeJob = async (req, res) => {
                         sla_value: service.sla_value,
                         sla_unit: service.sla_unit,
                         service_type: service.service_type,
+                        description : description,
                         points: service.points,
                     });
     
@@ -50,7 +54,7 @@ const getServiceByName = async (req, res) => {
   try {
     // Retrieve serviceName from the request params
     const { service_name } = req.params;
-
+    
     // Query the database to find the service with the specified name
     const service = await Service.findOne({ service_name });
 

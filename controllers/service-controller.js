@@ -16,8 +16,6 @@ const oneTimeJob = async (req, res) => {
                 try {
                     const service_name = service.service_name;
                     const { description } = service;
-                    console.log(service, 1)
-                    console.log(service.description, 2)
                     // console.log(service.service_id)
                     const additional_fields = service.additional_fields;
                     console.log(service.description)
@@ -30,6 +28,7 @@ const oneTimeJob = async (req, res) => {
                         service_type: service.service_type,
                         description : description,
                         points: service.points,
+                        department: service.department,
                     });
     
     
@@ -102,10 +101,36 @@ const getServiceByName = async (req, res) => {
     }
   };
 
+const getCategories = async (req, res) => {
+  try {
+    // Query the database to get all documents
+    const allComplains = await Service.find( {  service_type: "Complaint"});
+    const departmentNames = Array.from(new Set(allComplains.map(complain => complain.department)));
+    console.log(departmentNames);
+    res.json({ departmentNames });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getSubCategories = async (req, res) => {
+  try {
+    const { department } = req.params;
+    //get all complains with the same department
+    const allComplains = await Service.find( {  service_type: "Complaint", department: department});
+    //get all subcategories
+    const subcategories = Array.from(new Set(allComplains.map(complain => complain.service_name)));
+    res.json({ subcategories });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};  
 
 module.exports = {
     oneTimeJob,
     getServiceByName,
     getRequestsNames,
     getComplainsNames,
+    getCategories,
+    getSubCategories,
 }

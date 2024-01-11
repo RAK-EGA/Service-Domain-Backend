@@ -330,6 +330,8 @@ const getComplaintsWithIdandViewedByStaff = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   submitComplain,
   updateComplainStatus,
@@ -344,3 +346,4 @@ module.exports = {
   getComplaintsWithIdandViewedByStaff,
   getTicketWithStaffID,
 };
+

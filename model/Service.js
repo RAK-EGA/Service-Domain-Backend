@@ -22,5 +22,6 @@ const serviceSchema = new mongoose.Schema({
   service_type: String,
   points: Number,
   description: String,
+  department: String,
 });
 module.exports = mongoose.model('Service', serviceSchema);

@@ -156,37 +156,37 @@ const checkSla = async () => {
 
     // Check SLA for each request
     for (const request of requests) {
-      if(  request.status === "IN_PROGRESS" || request.status === "OPEN"  ){
-      const createdTime = new Date(request.createdAt); // Parse the createdAt field
-      const currentTime = new Date();
-      const slaTime = request.sla_value;
-      const slaUnit = request.sla_unit;
+      if (request.status === "IN_PROGRESS" || request.status === "OPEN") {
+        const createdTime = new Date(request.createdAt); // Parse the createdAt field
+        const currentTime = new Date();
+        const slaTime = request.sla_value;
+        const slaUnit = request.sla_unit;
 
-      let slaMultiplier = 1; // Default multiplier is 1 (hours)
+        let slaMultiplier = 1; // Default multiplier is 1 (hours)
 
-      // Check the unit of SLA
-      if (slaUnit === 'Days') {
-        slaMultiplier = 24; // Convert days to hours
-      }
+        // Check the unit of SLA
+        if (slaUnit === 'Days') {
+          slaMultiplier = 24; // Convert days to hours
+        }
 
-      const timeDifference = currentTime - createdTime;
+        const timeDifference = currentTime - createdTime;
 
-      if (timeDifference > slaTime * slaMultiplier * 60 * 60 * 1000) {
-        // Convert SLA time to milliseconds
-        // SLA exceeded, send to SQS
-        request.isExceeded = true;
-        request.save();
-        const exceededRequest = {
-          requestId: request._id,
-          slaExceededTime: timeDifference / (slaMultiplier * 60 * 60 * 1000), // Convert to hours
-          // Add other relevant fields from the request
-        };
-        //console.log(exceededRequest);
-        // Send to EventBridge
-        await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
+        if (timeDifference > slaTime * slaMultiplier * 60 * 60 * 1000) {
+          // Convert SLA time to milliseconds
+          // SLA exceeded, send to SQS
+          request.isExceeded = true;
+          request.save();
+          const exceededRequest = {
+            request: request,
+            slaExceededTime: timeDifference / (slaMultiplier * 60 * 60 * 1000), // Convert to hours
+            // Add other relevant fields from the request
+          };
+          //console.log(exceededRequest);
+          // Send to EventBridge
+          await sendToEventBridge(exceededRequest, process.env.RULE_ARN_CHECKSLA, "appRequestExceeded", "checkSla");
+        }
       }
     }
-  }
   } catch (error) {
     console.error(error);
   }

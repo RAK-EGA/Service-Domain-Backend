@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const categoryEnum = ["ELECTRICITY", "WATER", "SEWAGE", "GARBAGE", "OTHER"];
-const statusEnum = ["OPEN", "IN_PROGRESS", "RESOLVED","CANCELED"];
+const statusEnum = ["OPEN", "VIEWED_BY_STAFF", "ASSIGNED_TO_CONCERNED_DEPARTMENT","RESOLVED","CANCELED"];
 const subcategoryEnum = [
   "LEAKS",
   "LOW_WATER_PRESSURE",
@@ -67,6 +67,9 @@ const complainSchema = new mongoose.Schema({
     type: Number,
   },
   feedback: {
+    type: String,
+  },
+  assignedTo:{
     type: String,
   },
 }

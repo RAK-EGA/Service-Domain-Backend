@@ -183,9 +183,10 @@ const filterAndSortTickets = async (req, res) => {
             $switch: {
               branches: [
                 { case: { $eq: ["$status", "OPEN"] }, then: 1 },
-                { case: { $eq: ["$status", "IN_PROGRESS"] }, then: 2 },
-                { case: { $eq: ["$status", "CANCELED"] }, then: 3 },
-                { case: { $eq: ["$status", "RESOLVED"] }, then: 4 },
+                { case: { $eq: ["$status", "VIEWED_BY_STAFF"] }, then: 2 },
+                { case: { $eq: ["$status", "ASSIGNED_TO_CONCERNED_DEPARTMENT"] }, then: 3 },
+                { case: { $eq: ["$status", "CANCELED"] }, then: 4 },
+                { case: { $eq: ["$status", "RESOLVED"] }, then: 5 },
               ],
               default: 5,
             },
@@ -213,13 +214,10 @@ const addFeedback = async (req, res) => {
     const { feedback } = req.body;
     const { Rate } = req.body;
 
-    const updatedComplain = await Complain.findByIdAndUpdate(
-      id,
-      { feedback, Rate },
-      { new: true }
-    );
+    let updatedComplain = await Complain.findOne({ _id: id });
 
     if (!updatedComplain) {
+      console.log("Complain not found")
       return res.status(404).json({ error: "Complain not found" });
     }
 
@@ -227,17 +225,116 @@ const addFeedback = async (req, res) => {
       return res.status(404).json({ error: "Complain not resolved yet" });
     }
 
+    updatedComplain = await Complain.findByIdAndUpdate(
+      id,
+      { feedback, Rate },
+      { new: true }
+    );
+
   const result = await Complain.findById(updatedComplain._id)
   console.log(updatedComplain)
   const complainDetails = JSON.stringify(updatedComplain);
   console.log(complainDetails)
 
   // Send the event to EventBridge
-  await sendToEventBridge(updatedComplain, process.env.RULE_ARN_FEEDBACK, "appRequestUpdated","feedback");
+  // await sendToEventBridge(updatedComplain, process.env.RULE_ARN_FEEDBACK, "appRequestUpdated","feedback");
     res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" }); 
+  }
+};
+
+const getOpenedComplaintsWithCategory = async (req, res) => {
+  try {
+    const complains = await Complain.aggregate([
+      {
+        $match: {
+          status: "OPEN",
+          category: req.body.category,
+        },
+      },
+    ]);
+
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints found" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const assignComplaintToStaff = async (req, res) => {
+   try{
+    const { id } = req.body;
+    const { assignedTo } = req.body;
+
+    let updatedComplain = await Complain.findOne({ _id: id });
+
+    if (!updatedComplain) {
+      return res.status(404).json({ error: "Complain not found" });
+    }
+
+    if(updatedComplain.assignedTo){
+      return res.status(404).json({ error: "Complain already assigned" });
+    }
+
+    if (updatedComplain.status !== "OPEN") {
+      return res.status(404).json({ error: "Complain already being processed" });
+    }
+
+    updatedComplain = await Complain.findByIdAndUpdate(
+      id,
+      { assignedTo },
+      { new: true }
+    );
+
+    res.json(updatedComplain);
+   }
+    catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+const getTicketWithStaffID = async (req, res) => {
+  try {
+    const { assignedTo } = req.body;
+    const complains = await Complain.find({ assignedTo: assignedTo });
+
+    if (!complains) {
+      return res.status(404).json({ error: "Complain not found" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getComplaintsWithIdandViewedByStaff = async (req, res) => {
+  try {
+    const complains = await Complain.aggregate([
+      {
+        $match: {
+          status: "VIEWED_BY_STAFF",
+          assignedTo: req.body.assignedTo,
+        },
+      },
+    ]);
+
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints found" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -250,4 +347,8 @@ module.exports = {
   getInProgressComplains,
   getComplainsByCitizen,
   addFeedback,
+  getOpenedComplaintsWithCategory,
+  assignComplaintToStaff,
+  getComplaintsWithIdandViewedByStaff,
+  getTicketWithStaffID,
 };

@@ -227,6 +227,10 @@ const {
   getInProgressComplains,
   getComplainsByCitizen,
   addFeedback,
+  getOpenedComplaintsWithCategory,
+  assignComplaintToStaff,
+  getComplaintsWithIdandViewedByStaff,
+  getTicketWithStaffID,
 } = require("../controllers/complain-controller.js");
 
 const complainrouter = express.Router();
@@ -240,6 +244,10 @@ complainrouter.get('/filter/:searchString',filterAndSortTickets);
 complainrouter.get('/viewInProgress',getInProgressComplains);
 complainrouter.get('/viewComplaintsByCitizen/:citizenID',getComplainsByCitizen);
 complainrouter.put('/addFeedback/:id', authenticateUser, addFeedback);
+complainrouter.get('/openedComplaintsWithCategory', getOpenedComplaintsWithCategory);
+complainrouter.put('/assignComplaintToStaff', assignComplaintToStaff);
+complainrouter.get('/viewComplaintsWithIdandViewedByStaff', getComplaintsWithIdandViewedByStaff);
+complainrouter.get('/getTicketWithStaffID', getTicketWithStaffID);
 
 
 module.exports = complainrouter;

@@ -301,6 +301,7 @@ const updateRequestStatus = async (req, res) => {
     const result = await Request.findById(updatedRequest._id)
     console.log(updatedRequest)
     updatedRequest.save();
+    await sendToEventBridge(updatedRequest, process.env.RULE_ARN_REQUEST_UPDATE, "appRequestUpdate","request-update");
     
     const requestDetails = JSON.stringify(updatedRequest);
     console.log(requestDetails)

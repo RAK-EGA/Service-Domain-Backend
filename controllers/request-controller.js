@@ -45,13 +45,8 @@ const submitRequest = async (req, res) => {
               image: field.value,
               category: field.document_type//@todo make sure field name is correct"
             });
-
-            // console.log(field.value);
-            // console.log(field.document_type);
-            // Update the "fields" attribute with the AI response
             field.AI_fields = aiResponse.data;
-            //console.log("*******************");
-            //console.log(aiResponse.data);
+            
           } catch (aiError) {
             console.error(aiError);
             return res.status(500).json({ error: "Error fetching document fields from external API." });
@@ -76,6 +71,7 @@ const submitRequest = async (req, res) => {
 
     // Save the newComplain again to update the complainName
     await newRequest.save();
+    await sendToEventBridge(newRequest, process.env.RULE_ARN_REQUEST_SUBMISSION, "appRequestSubmitted","request");
 
     res.json({ success: true, message: "Request submitted successfully!" });
   } catch (error) {
@@ -305,6 +301,7 @@ const updateRequestStatus = async (req, res) => {
     const result = await Request.findById(updatedRequest._id)
     console.log(updatedRequest)
     updatedRequest.save();
+    
     const requestDetails = JSON.stringify(updatedRequest);
     console.log(requestDetails)
 

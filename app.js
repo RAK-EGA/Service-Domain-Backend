@@ -57,7 +57,7 @@ app.use(
 );
  
 
-cron.schedule('0 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
     try {
       await checkSla();
       console.log('checkSla executed successfully.');

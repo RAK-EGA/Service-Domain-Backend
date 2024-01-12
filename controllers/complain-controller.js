@@ -31,8 +31,6 @@ const submitComplain = async (req, res) => {
       sla_unit,
       points,
       description: "",
-      status,
-      _id
     });
 
     //loop over additional fields to get the description

@@ -246,7 +246,6 @@ const filterAndSortRequests = async (req, res) => {
             { citizenID: { $regex: searchString } },
             { serviceName: { $regex: searchString } },
             { status: { $regex: searchString } },
-            { serviceDetails: { $regex: searchString } },
           ],
         },
       },
@@ -300,7 +299,7 @@ const updateRequestStatus = async (req, res) => {
     const result = await Request.findById(updatedRequest._id)
     console.log(updatedRequest)
     updatedRequest.save();
-    await sendToEventBridge(updatedRequest, process.env.RULE_ARN_REQUEST_UPDATE, "appRequestUpdate","request-update");
+    await sendToEventBridge(updatedRequest, process.env.RULE_ARN_REQUEST_UPDATE, "appRequestUpdate","update-request");
     
     const requestDetails = JSON.stringify(updatedRequest);
     console.log(requestDetails)

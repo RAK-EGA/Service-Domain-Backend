@@ -6,7 +6,7 @@ const requestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['OPEN', 'CANCELLED', 'RESOLVED', 'IN_PROGRESS'],
+    enum: ["OPEN", "VIEWED_BY_STAFF", "ASSIGNED_TO_CONCERNED_DEPARTMENT","RESOLVED","CANCELED"],
     default: 'OPEN',
   },
   serviceName: {
@@ -31,7 +31,9 @@ const requestSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  
+  department:{
+    type: String,
+  },
   
 }
 ,{

@@ -61,7 +61,6 @@ const submitRequest = async (req, res) => {
       serviceDetails: additional_fields,
       sla_value: sla_value,
       sla_unit: sla_unit,
-      requestName,
     });
 
     await newRequest.save();

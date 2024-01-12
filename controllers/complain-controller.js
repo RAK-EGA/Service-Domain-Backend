@@ -20,6 +20,7 @@ const submitComplain = async (req, res) => {
     const { sla_value } = req.body;
     const { sla_unit } = req.body;
     const {points} = req.body;
+    
 
     const complain = new Complain({
       category,
@@ -28,8 +29,10 @@ const submitComplain = async (req, res) => {
       additional_fields,
       sla_value,
       sla_unit,
-      description: "",
       points,
+      description: "",
+      status,
+      _id
     });
 
     //loop over additional fields to get the description

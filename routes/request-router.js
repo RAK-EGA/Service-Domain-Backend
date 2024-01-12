@@ -8,7 +8,7 @@ const {getInProgressRequests} = require("../controllers/request-controller");
 const {updateRequestStatus} = require("../controllers/request-controller");
 const authenticateUser = require('../middlewares/UserAuthentication');
 
-requestrouter.post("/submitRequest", authenticateUser,submitRequest);
+requestrouter.post("/submitRequest", submitRequest);
 requestrouter.get("/getAllRequests", getAllRequests);
 requestrouter.get("/filter/:searchString", filterAndSortRequests);
 requestrouter.get("/getRequest/:id", authenticateUser , getRequest);

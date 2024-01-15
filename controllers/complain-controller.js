@@ -36,7 +36,8 @@ const submitComplain = async (req, res) => {
     //loop over additional fields to get the description
     for (const field of additional_fields) {
       if (field.field_name === "Description") {
-        complain.description = field.value;
+        if(field.value.length>0)
+          complain.description = field.value;
       }
     }
     console.log(complain.description)

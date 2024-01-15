@@ -34,6 +34,9 @@ const requestSchema = new mongoose.Schema({
   department:{
     type: String,
   },
+  assignedTo:{
+    type: String,
+  },
   
 }
 ,{

@@ -10,8 +10,6 @@ const submitRequest = async (req, res) => {
     const { sla_value } = req.body;
     const { sla_unit } = req.body;
     const { requestName } = req.body;
-    // console.log("*******************");
-    // console.log(additional_fields);
     // Parse and validate additional_fields
     if (additional_fields && Array.isArray(additional_fields)) {
       for (const field of additional_fields) {
@@ -68,7 +66,7 @@ const submitRequest = async (req, res) => {
     newRequest.requestName = `${newRequest.serviceName}_${newRequest._id}`;
     console.log(newRequest);
 
-    // Save the newComplain again to update the complainName
+    // Save the newRequest again to update the RequestName
     await newRequest.save();
     await sendToEventBridge(newRequest, process.env.RULE_ARN_REQUEST_SUBMISSION, "appRequestSubmitted","request");
 
@@ -192,7 +190,7 @@ const getAllRequests = async (req, res) => {
     const requests = await Request.find();
 
     if (!requests) {
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Request not found" });
     }
 
     res.json(requests);
@@ -208,7 +206,7 @@ const getRequest = async (req, res) => {
     const request = await Request.findById(id);
 
     if (!request) {
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Request not found" });
     }
 
     res.json(request);
@@ -220,10 +218,10 @@ const getRequest = async (req, res) => {
 
 const getInProgressRequests = async (req, res) => {
   try {
-    const requests = await Request.find({ status: 'IN_PROGRESS' });
+    const requests = await Request.find({ status: 'VIEWED_BY_STAFF' });
 
     if (requests.length === 0) {
-      return res.status(404).json({ error: "No requests in progress found" });
+      return res.status(404).json({ error: "No requests viewed by staff found" });
     }
 
     res.json(requests);
@@ -311,6 +309,99 @@ const updateRequestStatus = async (req, res) => {
   }
 };
 
+const getOpenedRequestsWithCategory = async (req, res) => {
+  try {
+    const Requests = await Request.aggregate([
+      {
+        $match: {
+          status: "OPEN",
+          category: req.body.category,
+        },
+      },
+    ]);
+
+    if (Requests.length === 0) {
+      return res.status(404).json({ error: "No requests found" });
+    }
+
+    res.json(Requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const assignRequestToStaff = async (req, res) => {
+   try{
+    const { id } = req.body;
+    const { assignedTo } = req.body;
+
+    let updatedRequest = await Request.findOne({ _id: id });
+
+    if (!updatedRequest) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    if(updatedRequest.assignedTo){
+      return res.status(404).json({ error: "Request already assigned" });
+    }
+
+    if (updatedRequest.status !== "OPEN") {
+      return res.status(404).json({ error: "Request already being processed" });
+    }
+
+    updatedRequest = await Request.findByIdAndUpdate(
+      id,
+      { assignedTo },
+      { new: true }
+    );
+
+    res.json(updatedRequest);
+   }
+    catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+const getTicketWithStaffID = async (req, res) => {
+  try {
+    const { assignedTo } = req.body;
+    const Requests = await Request.find({ assignedTo: assignedTo });
+
+    if (!Requests) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    res.json(Requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getRequestsWithIdandViewedByStaff = async (req, res) => {
+  try {
+    const Requests = await Request.aggregate([
+      {
+        $match: {
+          status: "VIEWED_BY_STAFF",
+          assignedTo: req.body.assignedTo,
+        },
+      },
+    ]);
+
+    if (Requests.length === 0) {
+      return res.status(404).json({ error: "No Requestts found" });
+    }
+
+    res.json(Requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 
 
 module.exports = {
@@ -321,4 +412,8 @@ module.exports = {
   getInProgressRequests,
   filterAndSortRequests,
   updateRequestStatus,
-}
+  getOpenedRequestsWithCategory,
+  assignRequestToStaff,
+  getRequestsWithIdandViewedByStaff,
+  getTicketWithStaffID
+};

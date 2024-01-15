@@ -157,8 +157,8 @@ const filterAndSortTickets = async (req, res) => {
   try {
     let searchString = req.params.searchString;
 
-    // const regex = new RegExp(searchString, 'i');
-    searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
+    // Make the searchString case-insensitive in the regex
+    searchString = new RegExp(searchString, 'i');
 
     const tickets = await Complain.aggregate([
       {
@@ -175,11 +175,11 @@ const filterAndSortTickets = async (req, res) => {
           customStatusOrder: {
             $switch: {
               branches: [
-                { case: { $eq: ["$status", "OPEN"] }, then: 1 },
-                { case: { $eq: ["$status", "VIEWED_BY_STAFF"] }, then: 2 },
-                { case: { $eq: ["$status", "ASSIGNED_TO_CONCERNED_DEPARTMENT"] }, then: 3 },
-                { case: { $eq: ["$status", "CANCELED"] }, then: 4 },
-                { case: { $eq: ["$status", "RESOLVED"] }, then: 5 },
+                { case: { $eq: [{ $toLower: "$status" }, "open"] }, then: 1 },
+                { case: { $eq: [{ $toLower: "$status" }, "viewed_by_staff"] }, then: 2 },
+                { case: { $eq: [{ $toLower: "$status" }, "assigned_to_concerned_department"] }, then: 3 },
+                { case: { $eq: [{ $toLower: "$status" }, "canceled"] }, then: 4 },
+                { case: { $eq: [{ $toLower: "$status" }, "resolved"] }, then: 5 },
               ],
               default: 5,
             },
@@ -193,7 +193,7 @@ const filterAndSortTickets = async (req, res) => {
         },
       },
     ]);
-    
+
     res.json(tickets);
   } catch (error) {
     console.error(error);

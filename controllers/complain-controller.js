@@ -300,11 +300,13 @@ const getOpenedComplaintsWithCategory = async (req, res) => {
       },
     ]);
 
-    if (complains.length === 0) {
+    
+    const filteredComplains = complains.filter(complain => !complain.assignedTo);
+    if (filteredComplains.length === 0) {
       return res.status(404).json({ error: "No complaints found" });
     }
 
-    res.json(complains);
+    res.json(filteredComplains);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

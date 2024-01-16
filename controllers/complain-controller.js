@@ -14,6 +14,7 @@ const {sendToEventBridge} = require('../eventBridge.js')
 const submitComplain = async (req, res) => {
   try {
     const category  = req.body.department;
+    const {location}  = req.body
     const citizenID = req.user.EID;
     const  subcategory  = req.body.service_name;
     const { additional_fields } = req.body;
@@ -30,6 +31,7 @@ const submitComplain = async (req, res) => {
       sla_value,
       sla_unit,
       points,
+      location,
       description: "",
     });
 

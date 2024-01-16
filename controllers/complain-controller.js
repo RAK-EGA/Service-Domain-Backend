@@ -313,8 +313,8 @@ const getOpenedComplaintsWithCategory = async (req, res) => {
 
 const assignComplaintToStaff = async (req, res) => {
    try{
-    const { id } = req.body;
-    const { assignedTo } = req.body;
+    const  id  = req.body.minTicketID;
+    const assignedTo  = req.body.minStaffID;
 
     let updatedComplain = await Complain.findOne({ _id: id });
 

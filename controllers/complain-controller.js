@@ -313,10 +313,14 @@ const getOpenedComplaintsWithCategory = async (req, res) => {
 
 const assignComplaintToStaff = async (req, res) => {
    try{
-    const  id  = req.body.minTicketID;
-    const assignedTo  = req.body.minStaffID;
+    const  minTicketID  = req.body.minTicketID;
+    const minStaffID  = req.body.minStaffID;
+    console.log(minTicketID);
+    console.log(minStaffID);
 
-    let updatedComplain = await Complain.findOne({ _id: id });
+    let updatedComplain = await Complain.findById(minTicketID);
+
+    console.log(updatedComplain);
 
     if (!updatedComplain) {
       return res.status(404).json({ error: "Complain not found" });
@@ -331,8 +335,8 @@ const assignComplaintToStaff = async (req, res) => {
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
-      id,
-      { assignedTo },
+      minTicketID,
+      { assignedTo: minStaffID },
       { new: true }
     );
 

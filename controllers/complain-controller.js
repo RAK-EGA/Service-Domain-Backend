@@ -45,14 +45,15 @@ const submitComplain = async (req, res) => {
     }
     console.log(complain.description)
 
-    const savedComplain = await complain.save();
+    await complain.save();
+    console.log(complain);
 
-    const complainDetails = JSON.stringify(savedComplain);
+    const complainDetails = JSON.stringify(complain);
     console.log(complainDetails)
 
     // Send the event to EventBridge
-    await sendToEventBridge(savedComplain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
-    res.json(savedComplain);
+    await sendToEventBridge(complain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
+    res.json(complain);
     
   } catch (error) {
     console.error(error);

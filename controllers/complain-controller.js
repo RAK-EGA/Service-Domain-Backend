@@ -279,7 +279,7 @@ const checkSlaComplain = async () => {
           };
           console.log(exceededComplain);
           // Send to EventBridge
-          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA-REQUEST, "appComplainExceeded", "checkSla-request");
+          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA_REQUEST, "appComplainExceeded", "checkSla-request");
         }
       }
     }

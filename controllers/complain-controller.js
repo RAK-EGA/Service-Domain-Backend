@@ -15,7 +15,7 @@ const submitComplain = async (req, res) => {
   try {
     const category  = req.body.department;
     const {location}  = req.body
-    const citizenID = req.user.EID;
+    const {citizenID} = req.body;
     const  subcategory  = req.body.service_name;
     const { additional_fields } = req.body;
     const { sla_value } = req.body;
@@ -25,7 +25,7 @@ const submitComplain = async (req, res) => {
 
     const complain = new Complain({
       category,
-      citizenID: citizenID,
+      citizenID,//: citizenID,
       subcategory,
       additional_fields,
       sla_value,
@@ -240,7 +240,7 @@ const addFeedback = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" }); 
   }
 };
-const checkSlaRequest = async () => {
+const checkSlaComplain = async () => {
   console.log("inside check sla");
   try {
     // Fetch all requests from the database
@@ -395,5 +395,6 @@ module.exports = {
   assignComplaintToStaff,
   getComplaintsWithIdandViewedByStaff,
   getTicketWithStaffID,
+  checkSlaComplain
 };
 

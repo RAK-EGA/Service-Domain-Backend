@@ -8,6 +8,7 @@ const complainRouter = require('./routes/complain-router.js');
 const cors = require('cors');
 const { sendToEventBridge } = require('./eventBridge.js');
 const { checkSla  } = require('./controllers/request-controller.js');
+const {checkSlaComplain} = require('./controllers/complain-controller.js')
 const cron = require('node-cron');
 const Service = require("./model/Service.js");
 const servicerouter = require('./routes/services-router.js');
@@ -59,7 +60,7 @@ app.use(
 
 cron.schedule('0 * * * *', async () => {
     try {
-      await checkSla();
+      await checkSlaComplain();
       console.log('checkSla executed successfully.');
     } catch (error) {
       console.error('Error executing checkSla:', error);
@@ -70,7 +71,7 @@ cron.schedule('0 * * * *', async () => {
       await checkSla();
       console.log('checkSla executed successfully.');
     } catch (error) {
-      console.error('Error executing checkSla:', error);
+      console.error('Error executing checkSla:', error.stack);
     }
   });  
 

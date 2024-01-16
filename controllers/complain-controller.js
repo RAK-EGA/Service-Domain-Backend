@@ -240,6 +240,52 @@ const addFeedback = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" }); 
   }
 };
+const checkSlaRequest = async () => {
+  console.log("inside check sla");
+  try {
+    // Fetch all requests from the database
+    const complains = await Complain.find();
+    //console.log("requests..........................");
+    //console.log(requests);
+
+    // Check SLA for each request
+    for (const complain of complains) {
+      if (complain.status === "IN_PROGRESS" || complain.status === "OPEN") {
+        const createdTime = new Date(complain.createdAt); // Parse the createdAt field
+        const currentTime = new Date();
+        const slaTime = complain.sla_value;
+        const slaUnit = complain.sla_unit;
+
+        let slaMultiplier = 1; // Default multiplier is 1 (hours)
+
+        // Check the unit of SLA
+        if (slaUnit === 'Days') {
+          slaMultiplier = 24; // Convert days to hours
+        }
+
+        const timeDifference = currentTime - createdTime;
+
+        if (timeDifference > slaTime * slaMultiplier * 60 * 60 * 1000) {
+          // Convert SLA time to milliseconds
+          // SLA exceeded, send to SQS
+          complain.isExceeded = true;
+          complain.save();
+          const exceededComplain = {
+            complain: complain,
+            slaExceededTime: timeDifference / (slaMultiplier * 60 * 60 * 1000), // Convert to hours
+            // Add other relevant fields from the request
+          };
+          console.log(exceededComplain);
+          // Send to EventBridge
+          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA-REQUEST, "appComplainExceeded", "checkSla-request");
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
 const getOpenedComplaintsWithCategory = async (req, res) => {
   try {

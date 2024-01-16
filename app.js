@@ -65,6 +65,14 @@ cron.schedule('0 * * * *', async () => {
       console.error('Error executing checkSla:', error);
     }
   });
+cron.schedule('0 * * * *', async () => {
+    try {
+      await checkSla();
+      console.log('checkSla executed successfully.');
+    } catch (error) {
+      console.error('Error executing checkSla:', error);
+    }
+  });  
 
 mongoose
     .connect(

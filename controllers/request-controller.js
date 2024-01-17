@@ -1,7 +1,8 @@
 const Request = require("../model/Request.js");
 const axios = require('axios');
 const cron = require('node-cron');
-const { sendToEventBridge } = require('../eventBridge.js')
+const { sendToEventBridge } = require('../eventBridge.js');
+const { request } = require("express");
 
 
 const submitRequest = async (req, res) => {
@@ -309,22 +310,24 @@ const updateRequestStatus = async (req, res) => {
   }
 };
 
-const getOpenedRequestsWithCategory = async (req, res) => {
+const getOpenedRequestsWithServiceName = async (req, res) => {
   try {
-    const Requests = await Request.aggregate([
+    const requests = await Request.aggregate([
       {
         $match: {
           status: "OPEN",
-          category: req.body.category,
+          serviceName: req.body.serviceName,
         },
       },
     ]);
 
-    if (Requests.length === 0) {
-      return res.status(404).json({ error: "No requests found" });
+
+    const filteredRequests = requests.filter(request => !request.assignedTo);
+    if (filteredRequests.length === 0) {
+      return res.status(404).json({ error: "No Requests found" });
     }
 
-    res.json(Requests);
+    res.json(filteredRequests);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -412,7 +415,7 @@ module.exports = {
   getInProgressRequests,
   filterAndSortRequests,
   updateRequestStatus,
-  getOpenedRequestsWithCategory,
+  getOpenedRequestsWithServiceName,
   assignRequestToStaff,
   getRequestsWithIdandViewedByStaff,
   getTicketWithStaffID

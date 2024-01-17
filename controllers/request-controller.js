@@ -303,7 +303,7 @@ const updateRequestStatus = async (req, res) => {
     const requestDetails = JSON.stringify(updatedRequest);
     console.log(requestDetails)
 
-    res.json(result);
+    res.status(201).json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

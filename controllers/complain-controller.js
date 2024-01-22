@@ -65,44 +65,48 @@ const updateComplainStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    
 
-    const updatedComplain = await Complain.findByIdAndUpdate(
+    let updatedComplain = await Complain.findByIdAndUpdate(
       id,
-
       { status },
-      { new: true }
+      { new: true },
     );
     
+    if(status==="RESOLVED"){
+      updatedComplain.resolutionTime = (updatedComplain.updatedAt-updatedComplain.createdAt)/ (1000 * 60 * 60);
+    }
+
+    updatedComplain.save();
+
+
     if (!updatedComplain) {
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Error: Complain not found" });
     }
   const result = await Complain.findById(updatedComplain._id)
-  console.log(updatedComplain)
-  const complainDetails = JSON.stringify(updatedComplain);
-  console.log(complainDetails)
 
   // Send the event to EventBridge
   await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated","update-ticket");
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error Updating Complaint status failed" });
   }
 };
 
 const getAllComplain = async (req, res) => {
   try {
-    const { id } = req.params;
+    
     const complain = await Complain.find();
 
     if (!complain) {
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Error loading complaints" });
     }
 
     res.json(complain);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading complaints" });
   }
 };
 
@@ -119,7 +123,7 @@ const getComplain = async (req, res) => {
     res.json(complain);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading complaint" });
   }
 };
 
@@ -127,14 +131,14 @@ const getInProgressComplains = async (req, res) => {
   try {
     const complains = await Complain.find({ status: 'IN_PROGRESS' });
 
-    if (complains.length === 0) {
-      return res.status(404).json({ error: "No complaints in progress found" });
+    if (!complains) {
+      return res.status(404).json({ error: "Error loading in progress complaints" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading in progress complaints" });
   }
 };
 
@@ -161,6 +165,10 @@ const getComplainsByCitizen = async (req, res) => {
 const filterAndSortTickets = async (req, res) => {
   try {
     let searchString = req.params.searchString;
+
+    if (searchString.length === 0) {
+      return res.status(404).json({ error: "Error: search string can't be empty " });
+    }
 
     // Make the searchString case-insensitive in the regex
     searchString = new RegExp(searchString, 'i');
@@ -199,16 +207,20 @@ const filterAndSortTickets = async (req, res) => {
       },
     ]);
 
+    if(!tickets){
+      return res.status(404).json({ error: "Error: No complaints found" });
+    }
+
     res.json(tickets);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Error loading or filtering complaints' });
   }
 };
 
 const addFeedback = async (req, res) => {
   try {
-    const { id } = req.params;
+    const  id  = req.user.EID;
     const { feedback } = req.body;
     const { Rate } = req.body;
 
@@ -216,11 +228,17 @@ const addFeedback = async (req, res) => {
 
     if (!updatedComplain) {
       console.log("Complain not found")
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Error: Complain not found" });
+    }
+    if(feedback.length===0){
+      return res.status(404).json({ error: "Error: Feedback can't be empty" });
+    }
+    if(!Rate){
+      return res.status(404).json({ error: "Error: Rate can't be empty" });
     }
 
     if (updatedComplain.status !== "RESOLVED") {
-      return res.status(404).json({ error: "Complain not resolved yet" });
+      return res.status(404).json({ error: "Error: Complain not resolved yet" });
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
@@ -239,9 +257,10 @@ const addFeedback = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" }); 
+    res.status(500).json({ error: "Error adding feedback" }); 
   }
 };
+
 const checkSlaComplain = async () => {
   console.log("inside check sla");
   try {
@@ -249,6 +268,10 @@ const checkSlaComplain = async () => {
     const complains = await Complain.find();
     //console.log("requests..........................");
     //console.log(requests);
+
+    if(!complains){
+      return res.status(404).json({ error: "Error: No complaints found" });
+    }
 
     // Check SLA for each request
     for (const complain of complains) {
@@ -285,6 +308,7 @@ const checkSlaComplain = async () => {
     }
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Error: checking sla for complaints failed" }); 
   }
 };
 
@@ -300,16 +324,19 @@ const getOpenedComplaintsWithCategory = async (req, res) => {
       },
     ]);
 
-    
+    if(!complains){
+      return res.status(404).json({ error: "Error: No open complaints found for this category" });
+    }
+
     const filteredComplains = complains.filter(complain => !complain.assignedTo);
     if (filteredComplains.length === 0) {
-      return res.status(404).json({ error: "No complaints found" });
+      return res.status(404).json({ error: "Error loading complaints" });
     }
 
     res.json(filteredComplains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading complaints" });
   }
 };
 
@@ -317,23 +344,22 @@ const assignComplaintToStaff = async (req, res) => {
    try{
     const  minTicketID  = req.body.minTicketID;
     const minStaffID  = req.body.minStaffID;
-    console.log(minTicketID);
-    console.log(minStaffID);
+    
 
     let updatedComplain = await Complain.findById(minTicketID);
 
-    console.log(updatedComplain);
+    
 
     if (!updatedComplain) {
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Error: Complain not found" });
     }
 
     if(updatedComplain.assignedTo){
-      return res.status(404).json({ error: "Complain already assigned" });
+      return res.status(404).json({ error: "Error: Complain already assigned" });
     }
 
     if (updatedComplain.status !== "OPEN") {
-      return res.status(404).json({ error: "Complain already being processed" });
+      return res.status(404).json({ error: "Error: Complain already being processed" });
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
@@ -346,7 +372,7 @@ const assignComplaintToStaff = async (req, res) => {
    }
     catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500).json({ error: "Error assigning complaint to staff member" });
     }
 };
 
@@ -356,13 +382,13 @@ const getTicketWithStaffID = async (req, res) => {
     const complains = await Complain.find({ assignedTo: assignedTo });
 
     if (!complains) {
-      return res.status(404).json({ error: "Complain not found" });
+      return res.status(404).json({ error: "Error loading complaints" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading complaints" });
   }
 };
 
@@ -377,14 +403,14 @@ const getComplaintsWithIdandViewedByStaff = async (req, res) => {
       },
     ]);
 
-    if (complains.length === 0) {
-      return res.status(404).json({ error: "No complaints found" });
+    if (!complains) {
+      return res.status(404).json({ error: "Error: No complaints found" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading complaints" });
   }
 };
 

@@ -1,11 +1,11 @@
 const express = require("express");
 const requestrouter = express.Router();
-const {submitRequest, getOpenedRequestsWithServiceName} = require("../controllers/request-controller");
+const {submitRequest} = require("../controllers/request-controller");
 const {getAllRequests} = require("../controllers/request-controller");
 const {filterAndSortRequests} = require("../controllers/request-controller");
 const {getRequest} = require("../controllers/request-controller");
 const {getInProgressRequests} = require("../controllers/request-controller");
-const {updateTicketStatus} = require("../Utils/TicketUtils.js");
+const {updateRequestStatus} = require("../controllers/request-controller");
 const authenticateUser = require('../middlewares/UserAuthentication');
 const {getOpenedRequestsWithServiceName} = require("../controllers/request-controller")
 const {assignRequestToStaff} = require("../controllers/request-controller")
@@ -17,7 +17,7 @@ requestrouter.get("/getAllRequests", getAllRequests);
 requestrouter.get("/filter/:searchString", filterAndSortRequests);
 requestrouter.get("/getRequest/:id", authenticateUser , getRequest);
 requestrouter.get("/getInProgressRequests", getInProgressRequests);
-requestrouter.put("/updateRequest/:id", updateTicketStatus());
+requestrouter.put("/updateRequest/:id",updateRequestStatus );
 requestrouter.get('/openedRequestsWithCategory', getOpenedRequestsWithServiceName);
 requestrouter.put('/assignRequestToStaff', assignRequestToStaff);
 requestrouter.get('/viewRequestsWithIdandViewedByStaff', getRequestsWithIdandViewedByStaff);

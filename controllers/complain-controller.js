@@ -15,7 +15,7 @@ const submitComplain = async (req, res) => {
   try {
     const category  = req.body.department;
     const {location}  = req.body
-    const {citizenID} = req.body;
+    const citizenID = req.user.EID;
     const  subcategory  = req.body.service_name;
     const { additional_fields } = req.body;
     const { sla_value } = req.body;
@@ -26,7 +26,7 @@ const submitComplain = async (req, res) => {
 
     const complain = new Complain({
       category,
-      citizenID,//: citizenID,
+      citizenID,
       subcategory,
       additional_fields,
       sla_value,
@@ -57,7 +57,7 @@ const submitComplain = async (req, res) => {
     
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: "Failed to authenticate with customer service" });
+    res.status(500).json({ error: "Complaint submission failed, please try again" });
   }
 };
 

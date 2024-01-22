@@ -231,6 +231,7 @@ const {
   assignComplaintToStaff,
   getComplaintsWithIdandViewedByStaff,
   getTicketWithStaffID,
+  getComplaintsWithIdandOpen,
 } = require("../controllers/complain-controller.js");
 
 const complainrouter = express.Router();
@@ -248,6 +249,7 @@ complainrouter.get('/openedComplaintsWithCategory', getOpenedComplaintsWithCateg
 complainrouter.put('/assignComplaintToStaff', assignComplaintToStaff);
 complainrouter.get('/viewComplaintsWithIdandViewedByStaff', getComplaintsWithIdandViewedByStaff);
 complainrouter.get('/getTicketWithStaffID', getTicketWithStaffID);
+complainrouter.get('/viewComplaintsWithIdandOpen', getComplaintsWithIdandOpen);
 
 
 module.exports = complainrouter;

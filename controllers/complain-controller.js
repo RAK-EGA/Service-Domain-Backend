@@ -35,13 +35,14 @@ const submitComplain = async (req, res) => {
       location,
       description: description
     });
-
     //loop over additional fields to get the description
     for (const field of additional_fields) {
       if (field.field_name === "Description") {
-        if(field.value.length>0)
-          complain.description = field.value;
+        if(field.value.length===0){
+          res.status(404).json({ error: "Error, please provide a description of the problem" });
+        }
       }
+
     }
     console.log(complain.description)
 
@@ -312,7 +313,6 @@ const checkSlaComplain = async () => {
   }
 };
 
-
 const getOpenedComplaintsWithCategory = async (req, res) => {
   try {
     const complains = await Complain.aggregate([
@@ -330,7 +330,7 @@ const getOpenedComplaintsWithCategory = async (req, res) => {
 
     const filteredComplains = complains.filter(complain => !complain.assignedTo);
     if (filteredComplains.length === 0) {
-      return res.status(404).json({ error: "Error loading complaints" });
+      return res.status(200).json({ error: `No new complaints of ${req.body.category} category` });
     }
 
     res.json(filteredComplains);
@@ -414,6 +414,28 @@ const getComplaintsWithIdandViewedByStaff = async (req, res) => {
   }
 };
 
+const getComplaintsWithIdandOpen = async (req, res) => {
+  try {
+    const complains = await Complain.aggregate([
+      {
+        $match: {
+          status: "OPEN",
+          assignedTo: req.body.assignedTo,
+        },
+      },
+    ]);
+
+    if (!complains) {
+      return res.status(404).json({ error: "Error: No complaints found" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error loading complaints" });
+  }
+};
+  
 
 
 module.exports = {
@@ -429,6 +451,7 @@ module.exports = {
   assignComplaintToStaff,
   getComplaintsWithIdandViewedByStaff,
   getTicketWithStaffID,
-  checkSlaComplain
+  checkSlaComplain,
+  getComplaintsWithIdandOpen,
 };
 

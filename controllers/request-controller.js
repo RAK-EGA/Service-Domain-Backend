@@ -10,7 +10,7 @@ const submitRequest = async (req, res) => {
     const { additional_fields } = req.body;
     const { sla_value } = req.body;
     const { sla_unit } = req.body;
-    const { requestName } = req.body;
+
     // Parse and validate additional_fields
     if (additional_fields && Array.isArray(additional_fields)) {
       for (const field of additional_fields) {
@@ -23,15 +23,16 @@ const submitRequest = async (req, res) => {
             const submittedValue = field.value;
 
             if (!allowedValues.includes(submittedValue)) {
-              return res.status(400).json({ error: "Can't submit your request. Invalid value for the field." });
+              return res.status(400).json({ error: "Error: Can't submit your request. Invalid value for the field." });
             }
+
           } else if (conditionType === "min-max") {
             // Check if the value is in the specified range
             const [min, max] = field.condition.values;
             const submittedValue = parseInt(field.value);
 
             if (submittedValue < min || submittedValue > max) {
-              return res.status(400).json({ error: "Can't submit your request. Value is out of range." });
+              return res.status(400).json({ error: "Error: Can't submit your request. Value is out of range." });
             }
           }
         }
@@ -40,15 +41,15 @@ const submitRequest = async (req, res) => {
         if (field.field_type === "document" && field.is_ai_compatible) {
           // Call the external API to get document fields
           try {
-            const aiResponse = await axios.post('https://rakmun-api.rakega.online/models/read-id', {
-              image: field.value,
-              category: field.document_type//@todo make sure field name is correct"
-            });
+            const aiResponse = await axios.post('https://rakmun-api.rakega.online/models/read-id', {image: field.value,category: field.document_type});
+            if (!aiResponse.data){
+              return res.status(404).json({ error: "Error fetching document fields from external API." });
+            }
             field.AI_fields = aiResponse.data;
-            
+            i
           } catch (aiError) {
             console.error(aiError);
-            return res.status(500).json({ error: "Error fetching document fields from external API." });
+            return res.status(500).json({ error: "Error connecting to documents API." });
           }
         }
       }

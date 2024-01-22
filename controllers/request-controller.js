@@ -184,6 +184,7 @@ const checkSla = async () => {
     }
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Error: checking sla for requests failed" }); 
   }
 };
 
@@ -192,13 +193,13 @@ const getAllRequests = async (req, res) => {
     const requests = await Request.find();
 
     if (!requests) {
-      return res.status(404).json({ error: "Request not found" });
+      return res.status(404).json({ error: "rror laoding all requests" });
     }
 
     res.json(requests);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error laoding all requests" });
   }
 };
 
@@ -208,13 +209,13 @@ const getRequest = async (req, res) => {
     const request = await Request.findById(id);
 
     if (!request) {
-      return res.status(404).json({ error: "Request not found" });
+      return res.status(404).json({ error: "Error: Request not found" });
     }
 
     res.json(request);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error: Request not found" });
   }
 };
 
@@ -223,16 +224,17 @@ const getInProgressRequests = async (req, res) => {
     const requests = await Request.find({ status: 'VIEWED_BY_STAFF' });
 
     if (requests.length === 0) {
-      return res.status(404).json({ error: "No requests viewed by staff found" });
+      return res.status(404).json({ error: "Error: No requests viewed by staff found" });
     }
 
     res.json(requests);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error: No requests viewed by staff found" });
   }
 };
 
+//we are here
 const filterAndSortRequests = async (req, res) => {
   try {
     let searchString = req.params.searchString;

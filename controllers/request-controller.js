@@ -38,18 +38,25 @@ const submitRequest = async (req, res) => {
         }
 
         // Check if the type is "document" and ai_compatible is true
-        if (field.field_type === "document" && field.is_ai_compatible) {
-          // Call the external API to get document fields
-          try {
-            const aiResponse = await axios.post('https://rakmun-api.rakega.online/models/read-id', {image: field.value,category: field.document_type});
-            if (!aiResponse.data){
-              return res.status(404).json({ error: "Error fetching document fields from external API." });
+        if (field.field_type === "document" && field.is_required) {
+
+          if (!field.value) {
+            return res.status(400).json({ error: "Error: Can't submit your request. Please upload the required documents." });
+          }
+
+          if (field.is_ai_compatible) {
+            // Call the external API to get document fields
+            try {
+              const aiResponse = await axios.post('https://rakmun-api.rakega.online/models/read-id', { image: field.value, category: field.document_type });
+              if (!aiResponse.data) {
+                return res.status(404).json({ error: "Error fetching document fields from external API." });
+              }
+              field.AI_fields = aiResponse.data;
+              i
+            } catch (aiError) {
+              console.error(aiError);
+              return res.status(500).json({ error: "Error connecting to documents API." });
             }
-            field.AI_fields = aiResponse.data;
-            i
-          } catch (aiError) {
-            console.error(aiError);
-            return res.status(500).json({ error: "Error connecting to documents API." });
           }
         }
       }
@@ -65,17 +72,17 @@ const submitRequest = async (req, res) => {
 
     await newRequest.save();
 
-    newRequest.requestName = `${newRequest.serviceName}_${newRequest._id}`;
-    console.log(newRequest);
+    // newRequest.requestName = `${newRequest.serviceName}_${newRequest._id}`;
+    // console.log(newRequest);
 
-    // Save the newRequest again to update the RequestName
-    await newRequest.save();
-    await sendToEventBridge(newRequest, process.env.RULE_ARN_REQUEST_SUBMISSION, "appRequestSubmitted","request");
+    // // Save the newRequest again to update the RequestName
+    // await newRequest.save();
+    await sendToEventBridge(newRequest, process.env.RULE_ARN_REQUEST_SUBMISSION, "appRequestSubmitted", "request");
 
     res.json({ success: true, message: "Request submitted successfully!" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error submitting request" });
   }
 };
 
@@ -184,7 +191,7 @@ const checkSla = async () => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error: checking sla for requests failed" }); 
+    res.status(500).json({ error: "Error: checking sla for requests failed" });
   }
 };
 
@@ -275,10 +282,33 @@ const filterAndSortRequests = async (req, res) => {
       },
     ]);
 
+    if (!tickets) {
+      return res.status(404).json({ error: "Error: No complaints found" });
+    }
+
     res.json(tickets);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Error: No complaints found' });
+  }
+};
+const getRequestsByStaff = async (req, res) => {
+  try {
+    const { assignedTo } = req.body;
+    if (!assignedTo) {
+      return res.status(400).json({ error: "Staff ID is required" });
+    }
+
+    const requests = await Request.find({ assignedTo: assignedTo });
+
+    if (requests.length === 0) {
+      return res.status(404).json({ error: "No requests found for the specified staff member" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error loading complaints" });
   }
 };
 
@@ -292,24 +322,27 @@ const updateRequestStatus = async (req, res) => {
       { status },
       { new: true }
     );
+
+    if (!updatedRequest) {
+      return res.status(404).json({ error: "Error: Request not found" });
+    }
+
     if (status === "RESOLVED") {
       updatedRequest.resolutionTime = (updatedRequest.updatedAt - updatedRequest.createdAt) / (1000 * 60 * 60);
     }
-    if (!updatedRequest) {
-      return res.status(404).json({ error: "Request not found" });
-    }
+
     const result = await Request.findById(updatedRequest._id)
     console.log(updatedRequest)
     updatedRequest.save();
-    await sendToEventBridge(updatedRequest, process.env.RULE_ARN_REQUEST_UPDATE, "appRequestUpdate","update-request");
-    
+    await sendToEventBridge(updatedRequest, process.env.RULE_ARN_REQUEST_UPDATE, "appRequestUpdate", "update-request");
+
     const requestDetails = JSON.stringify(updatedRequest);
     console.log(requestDetails)
 
     res.status(201).json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error: Updating request status" });
   }
 };
 
@@ -324,41 +357,48 @@ const getOpenedRequestsWithServiceName = async (req, res) => {
       },
     ]);
 
+    if (!requests) {
+      return res.status(404).json({ error: "Error: No open requests with the provided service name found" });
+    }
 
     const filteredRequests = requests.filter(request => !request.assignedTo);
+
     if (filteredRequests.length === 0) {
-      return res.status(404).json({ error: "No Requests found" });
+      return res.status(200).json("Error: No unassigned open Requests found" );
     }
 
     res.json(filteredRequests);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error getting open requests with service name" });
   }
 };
 
 const assignRequestToStaff = async (req, res) => {
-   try{
-    const { id } = req.body;
-    const { assignedTo } = req.body;
+  try{
+    const  minTicketID  = req.body.minTicketID;
+    const minStaffID  = req.body.minStaffID;
+    
 
-    let updatedRequest = await Request.findOne({ _id: id });
+    let updatedRequest = await Request.findById(minTicketID);
+
+    
 
     if (!updatedRequest) {
-      return res.status(404).json({ error: "Request not found" });
+      return res.status(404).json({ error: "Error: Request not found" });
     }
 
     if(updatedRequest.assignedTo){
-      return res.status(404).json({ error: "Request already assigned" });
+      return res.status(404).json({ error: "Error: Request already assigned" });
     }
 
     if (updatedRequest.status !== "OPEN") {
-      return res.status(404).json({ error: "Request already being processed" });
+      return res.status(404).json({ error: "Error: Request already being processed" });
     }
 
     updatedRequest = await Request.findByIdAndUpdate(
-      id,
-      { assignedTo },
+      minTicketID,
+      { assignedTo: minStaffID },
       { new: true }
     );
 
@@ -366,7 +406,7 @@ const assignRequestToStaff = async (req, res) => {
    }
     catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500).json({ error: "Error assigning Request to staff member" });
     }
 };
 
@@ -376,13 +416,13 @@ const getTicketWithStaffID = async (req, res) => {
     const Requests = await Request.find({ assignedTo: assignedTo });
 
     if (!Requests) {
-      return res.status(404).json({ error: "Request not found" });
+      return res.status(404).json({ error: "Error: Requests not found" });
     }
 
     res.json(Requests);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error getting request with staff ID" });
   }
 };
 
@@ -397,14 +437,14 @@ const getRequestsWithIdandViewedByStaff = async (req, res) => {
       },
     ]);
 
-    if (Requests.length === 0) {
-      return res.status(404).json({ error: "No Requestts found" });
+    if (!Requests) {
+      return res.status(404).json({ error: "Error: No Requests found" });
     }
 
     res.json(Requests);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error getting request viewed by staff" });
   }
 };
 

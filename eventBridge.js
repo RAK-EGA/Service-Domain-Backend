@@ -22,6 +22,17 @@ const sendToEventBridge = async (newObject, ruleARN, DetailType,source) => {
     // Send the event to EventBridge
     console.log("Before");
     const data = await ebClient.send(new PutEventsCommand(params));
+    
+    //to do : check this is correct
+    if (data.FailedEntryCount > 0) {
+      console.log("Failed to send event to EventBridge");
+      data.Entries.forEach((entry) => {
+        if (entry.ErrorCode && entry.ErrorMessage) {
+          console.log(`[${entry.ErrorCode}] ${entry.ErrorMessage}`);
+        }
+      });
+    }
+
     console.log("after");
     return data;
   } catch (err) {

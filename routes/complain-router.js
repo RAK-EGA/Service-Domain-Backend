@@ -225,7 +225,7 @@ const {
   getAllComplain,
   filterAndSortTickets,
   getInProgressComplains,
-  getComplainsByCitizen,
+  getComplainsByStaff,
   addFeedback,
   getOpenedComplaintsWithCategory,
   assignComplaintToStaff,
@@ -243,7 +243,7 @@ complainrouter.get("/view", getAllComplain);
 complainrouter.get("/view/:id", getComplain);
 complainrouter.get('/filter/:searchString',filterAndSortTickets);
 complainrouter.get('/viewInProgress',getInProgressComplains);
-complainrouter.get('/viewComplaintsByCitizen/:citizenID',getComplainsByCitizen);
+complainrouter.get('/viewComplaintsByStaff',getComplainsByStaff);
 complainrouter.put('/addFeedback/:id', authenticateUser, addFeedback);
 complainrouter.get('/openedComplaintsWithCategory', getOpenedComplaintsWithCategory);
 complainrouter.put('/assignComplaintToStaff', assignComplaintToStaff);

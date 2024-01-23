@@ -62,7 +62,6 @@ const complainSchema = new mongoose.Schema({
     type: String,
   },
   
-  
 }
 ,{
   timestamps: true

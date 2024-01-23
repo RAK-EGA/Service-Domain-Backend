@@ -143,23 +143,23 @@ const getInProgressComplains = async (req, res) => {
   }
 };
 
-const getComplainsByCitizen = async (req, res) => {
+const getComplainsByStaff = async (req, res) => {
   try {
-    const { citizenID } = req.params;
-    if (!citizenID) {
-      return res.status(400).json({ error: "Citizen ID is required" });
+    const { assignedTo } = req.body;
+    if (!assignedTo) {
+      return res.status(400).json({ error: "Staff ID is required" });
     }
 
-    const complains = await Complain.find({ citizenID: citizenID });
+    const complains = await Complain.find({ assignedTo: assignedTo });
 
     if (complains.length === 0) {
-      return res.status(404).json({ error: "No complaints found for the specified citizen" });
+      return res.status(404).json({ error: "No complaints found for the specified staff member" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Error loading complaints" });
   }
 };
 
@@ -445,7 +445,7 @@ module.exports = {
   getAllComplain,
   filterAndSortTickets,
   getInProgressComplains,
-  getComplainsByCitizen,
+  getComplainsByStaff,
   addFeedback,
   getOpenedComplaintsWithCategory,
   assignComplaintToStaff,

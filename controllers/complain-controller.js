@@ -204,6 +204,7 @@ const getInProgressComplains = async (req, res) => {
 const filterAndSortTickets = async (req, res) => {
   try {
     let searchString = req.params.searchString;
+    const assignedTo = req.body.assignedTo;
 
     if (searchString.length === 0) {
       return res.status(404).json({ error: "Error: search string can't be empty " });
@@ -220,6 +221,7 @@ const filterAndSortTickets = async (req, res) => {
             { subcategory: { $regex: searchString } },
             { status: { $regex: searchString } },
           ],
+          assignedTo: assignedTo, // Add this condition
         },
       },
       {
@@ -246,7 +248,7 @@ const filterAndSortTickets = async (req, res) => {
       },
     ]);
 
-    if(!tickets){
+    if (!tickets || tickets.length === 0) {
       return res.status(404).json({ error: "Error: No complaints found" });
     }
 
@@ -256,6 +258,7 @@ const filterAndSortTickets = async (req, res) => {
     res.status(500).json({ error: 'Error loading or filtering complaints' });
   }
 };
+
 
 const addFeedback = async (req, res) => {
   try {

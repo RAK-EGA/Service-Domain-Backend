@@ -52,7 +52,7 @@ const submitRequest = async (req, res) => {
                 return res.status(404).json({ error: "Error fetching document fields from external API." });
               }
               field.AI_fields = aiResponse.data;
-              i
+              
             } catch (aiError) {
               console.error(aiError);
               return res.status(500).json({ error: "Error connecting to documents API." });
@@ -245,17 +245,24 @@ const getInProgressRequests = async (req, res) => {
 const filterAndSortRequests = async (req, res) => {
   try {
     let searchString = req.params.searchString;
-    console.log(searchString);
-    searchString = searchString.replace(/(\r\n|\n|\r)/gm, "");
+    const assignedTo = req.body.assignedTo;
+
+    if (searchString.length === 0) {
+      return res.status(404).json({ error: "Error: search string can't be empty " });
+    }
+
+    // Make the searchString case-insensitive in the regex
+    searchString = new RegExp(searchString, 'i');
 
     const tickets = await Request.aggregate([
       {
         $match: {
           $or: [
-            { citizenID: { $regex: searchString } },
             { serviceName: { $regex: searchString } },
+            { department: { $regex: searchString } },
             { status: { $regex: searchString } },
           ],
+          assignedTo: assignedTo, // Add this condition
         },
       },
       {
@@ -263,10 +270,11 @@ const filterAndSortRequests = async (req, res) => {
           customStatusOrder: {
             $switch: {
               branches: [
-                { case: { $eq: ["$status", "OPEN"] }, then: 1 },
-                { case: { $eq: ["$status", "IN_PROGRESS"] }, then: 2 },
-                { case: { $eq: ["$status", "CANCELLED"] }, then: 3 },
-                { case: { $eq: ["$status", "RESOLVED"] }, then: 4 },
+                { case: { $eq: [{ $toLower: "$status" }, "open"] }, then: 1 },
+                { case: { $eq: [{ $toLower: "$status" }, "viewed_by_staff"] }, then: 2 },
+                { case: { $eq: [{ $toLower: "$status" }, "assigned_to_concerned_department"] }, then: 3 },
+                { case: { $eq: [{ $toLower: "$status" }, "canceled"] }, then: 4 },
+                { case: { $eq: [{ $toLower: "$status" }, "resolved"] }, then: 5 },
               ],
               default: 5,
             },
@@ -275,21 +283,20 @@ const filterAndSortRequests = async (req, res) => {
       },
       {
         $sort: {
-          isExceeded: -1,
           customStatusOrder: 1,
           createdAt: -1,
         },
       },
     ]);
 
-    if (!tickets) {
+    if (!tickets || tickets.length === 0) {
       return res.status(404).json({ error: "Error: No complaints found" });
     }
 
     res.json(tickets);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error: No complaints found' });
+    res.status(500).json({ error: 'Error loading or filtering complaints' });
   }
 };
 

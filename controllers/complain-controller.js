@@ -127,6 +127,62 @@ const getComplain = async (req, res) => {
     res.status(500).json({ error: "Error loading complaint" });
   }
 };
+const getComplainByDate = async (req, res) => {
+  try {
+    const { id } = req.user.EID;
+    const { date } = req.body;
+
+    const complaints = await Complain.find({
+      citizenId: id,
+      $expr: {
+        $regexMatch: {
+          input: { $toString: "$createdAt" },
+          regex: date,
+          options: "i",
+        },
+      },
+    });
+
+    if (!complaints || complaints.length === 0) {
+      return res.status(404).json({ error: "Complaints not found for the given citizen ID and date substring" });
+    }
+
+    res.json(complaints);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error loading complaints" });
+  }
+};
+
+const getComplainByDateAndSubcategory = async (req, res) => {
+  try {
+    const { id } = req.user.EID;
+    const { date } = req.body;
+    const {subcategory}=req.body
+
+    const complaints = await Complain.find({
+      citizenId: id,
+      subcategory,
+      $expr: {
+        $regexMatch: {
+          input: { $toString: "$createdAt" },
+          regex: date,
+          options: "i",
+        },
+      },
+    });
+
+    if (!complaints || complaints.length === 0) {
+      return res.status(404).json({ error: "Complaints not found for the given citizen ID and date substring" });
+    }
+
+    res.json(complaints);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error loading complaints" });
+  }
+};
+
 
 const getInProgressComplains = async (req, res) => {
   try {
@@ -143,25 +199,7 @@ const getInProgressComplains = async (req, res) => {
   }
 };
 
-const getComplainsByStaff = async (req, res) => {
-  try {
-    const { assignedTo } = req.body;
-    if (!assignedTo) {
-      return res.status(400).json({ error: "Staff ID is required" });
-    }
 
-    const complains = await Complain.find({ assignedTo: assignedTo });
-
-    if (complains.length === 0) {
-      return res.status(404).json({ error: "No complaints found for the specified staff member" });
-    }
-
-    res.json(complains);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
-  }
-};
 
 const filterAndSortTickets = async (req, res) => {
   try {
@@ -303,7 +341,7 @@ const checkSlaComplain = async () => {
           };
           console.log(exceededComplain);
           // Send to EventBridge
-          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA_REQUEST, "appComplainExceeded", "checkSla-request");
+          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA_COMPLAIN, "appComplainExceeded", "checkSla-request");
         }
       }
     }
@@ -445,7 +483,6 @@ module.exports = {
   getAllComplain,
   filterAndSortTickets,
   getInProgressComplains,
-  getComplainsByStaff,
   addFeedback,
   getOpenedComplaintsWithCategory,
   assignComplaintToStaff,
@@ -453,5 +490,7 @@ module.exports = {
   getTicketWithStaffID,
   checkSlaComplain,
   getComplaintsWithIdandOpen,
+  getComplainByDate,
+  getComplainByDateAndSubcategory
 };
 

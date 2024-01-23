@@ -292,25 +292,7 @@ const filterAndSortRequests = async (req, res) => {
     res.status(500).json({ error: 'Error: No complaints found' });
   }
 };
-const getRequestsByStaff = async (req, res) => {
-  try {
-    const { assignedTo } = req.body;
-    if (!assignedTo) {
-      return res.status(400).json({ error: "Staff ID is required" });
-    }
 
-    const requests = await Request.find({ assignedTo: assignedTo });
-
-    if (requests.length === 0) {
-      return res.status(404).json({ error: "No requests found for the specified staff member" });
-    }
-
-    res.json(complains);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
-  }
-};
 
 const updateRequestStatus = async (req, res) => {
   try {
@@ -461,5 +443,5 @@ module.exports = {
   getOpenedRequestsWithServiceName,
   assignRequestToStaff,
   getRequestsWithIdandViewedByStaff,
-  getTicketWithStaffID
+  getTicketWithStaffID,
 };

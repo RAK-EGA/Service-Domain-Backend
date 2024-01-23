@@ -13,9 +13,10 @@ const {sendToEventBridge} = require('../eventBridge.js')
 
 const submitComplain = async (req, res) => {
   try {
+    console.log("inside submitComplain")
     const category  = req.body.department;
     const {location}  = req.body
-    const citizenID = req.user.EID;
+    const {citizenID} = req.body;
     const  subcategory  = req.body.service_name;
     const { additional_fields } = req.body;
     const { sla_value } = req.body;
@@ -26,7 +27,7 @@ const submitComplain = async (req, res) => {
 
     const complain = new Complain({
       category,
-      citizenID,
+      citizenID,//: citizenID,
       subcategory,
       additional_fields,
       sla_value,
@@ -35,14 +36,13 @@ const submitComplain = async (req, res) => {
       location,
       description: description
     });
+
     //loop over additional fields to get the description
     for (const field of additional_fields) {
       if (field.field_name === "Description") {
-        if(field.value.length===0){
-          res.status(404).json({ error: "Error, please provide a description of the problem" });
-        }
+        if(field.value.length>0)
+          complain.description = field.value;
       }
-
     }
     console.log(complain.description)
 
@@ -54,11 +54,12 @@ const submitComplain = async (req, res) => {
 
     // Send the event to EventBridge
     await sendToEventBridge(complain, process.env.RULE_ARN_SUBMISSION, "appRequestSubmitted","submit-ticket");
-    res.json(complain);
+    res.json({message:"Request submitted successfully!"});
+    done();
     
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Complaint submission failed, please try again" });
+    res.status(400).json({ error: "Failed to authenticate with customer service" });
   }
 };
 
@@ -66,48 +67,44 @@ const updateComplainStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
 
-    let updatedComplain = await Complain.findByIdAndUpdate(
+    const updatedComplain = await Complain.findByIdAndUpdate(
       id,
+
       { status },
-      { new: true },
+      { new: true }
     );
     
-    if(status==="RESOLVED"){
-      updatedComplain.resolutionTime = (updatedComplain.updatedAt-updatedComplain.createdAt)/ (1000 * 60 * 60);
-    }
-
-    updatedComplain.save();
-
-
     if (!updatedComplain) {
-      return res.status(404).json({ error: "Error: Complain not found" });
+      return res.status(404).json({ error: "Complain not found" });
     }
   const result = await Complain.findById(updatedComplain._id)
+  console.log(updatedComplain)
+  const complainDetails = JSON.stringify(updatedComplain);
+  console.log(complainDetails)
 
   // Send the event to EventBridge
   await sendToEventBridge(updatedComplain, process.env.RULE_ARN_UPDATE, "appRequestUpdated","update-ticket");
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error Updating Complaint status failed" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const getAllComplain = async (req, res) => {
   try {
-    
+    const { id } = req.params;
     const complain = await Complain.find();
 
     if (!complain) {
-      return res.status(404).json({ error: "Error loading complaints" });
+      return res.status(404).json({ error: "Complain not found" });
     }
 
     res.json(complain);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -124,91 +121,48 @@ const getComplain = async (req, res) => {
     res.json(complain);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error loading complaint" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
-const getComplainByDate = async (req, res) => {
-  try {
-    const { id } = req.user.EID;
-    const { date } = req.body;
-
-    const complaints = await Complain.find({
-      citizenId: id,
-      $expr: {
-        $regexMatch: {
-          input: { $toString: "$createdAt" },
-          regex: date,
-          options: "i",
-        },
-      },
-    });
-
-    if (!complaints || complaints.length === 0) {
-      return res.status(404).json({ error: "Complaints not found for the given citizen ID and date substring" });
-    }
-
-    res.json(complaints);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
-  }
-};
-
-const getComplainByDateAndSubcategory = async (req, res) => {
-  try {
-    const { id } = req.user.EID;
-    const { date } = req.body;
-    const {subcategory}=req.body
-
-    const complaints = await Complain.find({
-      citizenId: id,
-      subcategory,
-      $expr: {
-        $regexMatch: {
-          input: { $toString: "$createdAt" },
-          regex: date,
-          options: "i",
-        },
-      },
-    });
-
-    if (!complaints || complaints.length === 0) {
-      return res.status(404).json({ error: "Complaints not found for the given citizen ID and date substring" });
-    }
-
-    res.json(complaints);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
-  }
-};
-
 
 const getInProgressComplains = async (req, res) => {
   try {
     const complains = await Complain.find({ status: 'IN_PROGRESS' });
 
-    if (!complains) {
-      return res.status(404).json({ error: "Error loading in progress complaints" });
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints in progress found" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error loading in progress complaints" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+const getComplainsByCitizen = async (req, res) => {
+  try {
+    const { citizenID } = req.params;
+    if (!citizenID) {
+      return res.status(400).json({ error: "Citizen ID is required" });
+    }
 
+    const complains = await Complain.find({ citizenID: citizenID });
+
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints found for the specified citizen" });
+    }
+
+    res.json(complains);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 const filterAndSortTickets = async (req, res) => {
   try {
     let searchString = req.params.searchString;
-    const assignedTo = req.body.assignedTo;
-
-    if (searchString.length === 0) {
-      return res.status(404).json({ error: "Error: search string can't be empty " });
-    }
 
     // Make the searchString case-insensitive in the regex
     searchString = new RegExp(searchString, 'i');
@@ -221,7 +175,6 @@ const filterAndSortTickets = async (req, res) => {
             { subcategory: { $regex: searchString } },
             { status: { $regex: searchString } },
           ],
-          assignedTo: assignedTo, // Add this condition
         },
       },
       {
@@ -248,21 +201,16 @@ const filterAndSortTickets = async (req, res) => {
       },
     ]);
 
-    if (!tickets || tickets.length === 0) {
-      return res.status(404).json({ error: "Error: No complaints found" });
-    }
-
     res.json(tickets);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error loading or filtering complaints' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
 const addFeedback = async (req, res) => {
   try {
-    const  id  = req.user.EID;
+    const { id } = req.params;
     const { feedback } = req.body;
     const { Rate } = req.body;
 
@@ -270,17 +218,11 @@ const addFeedback = async (req, res) => {
 
     if (!updatedComplain) {
       console.log("Complain not found")
-      return res.status(404).json({ error: "Error: Complain not found" });
-    }
-    if(feedback.length===0){
-      return res.status(404).json({ error: "Error: Feedback can't be empty" });
-    }
-    if(!Rate){
-      return res.status(404).json({ error: "Error: Rate can't be empty" });
+      return res.status(404).json({ error: "Complain not found" });
     }
 
     if (updatedComplain.status !== "RESOLVED") {
-      return res.status(404).json({ error: "Error: Complain not resolved yet" });
+      return res.status(404).json({ error: "Complain not resolved yet" });
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
@@ -299,10 +241,9 @@ const addFeedback = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error adding feedback" }); 
+    res.status(500).json({ error: "Internal Server Error" }); 
   }
 };
-
 const checkSlaComplain = async () => {
   console.log("inside check sla");
   try {
@@ -310,10 +251,6 @@ const checkSlaComplain = async () => {
     const complains = await Complain.find();
     //console.log("requests..........................");
     //console.log(requests);
-
-    if(!complains){
-      return res.status(404).json({ error: "Error: No complaints found" });
-    }
 
     // Check SLA for each request
     for (const complain of complains) {
@@ -344,15 +281,15 @@ const checkSlaComplain = async () => {
           };
           console.log(exceededComplain);
           // Send to EventBridge
-          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA_COMPLAIN, "appComplainExceeded", "checkSla-request");
+          await sendToEventBridge(exceededComplain, process.env.RULE_ARN_CHECKSLA_REQUEST, "appComplainExceeded", "checkSla-request");
         }
       }
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error: checking sla for complaints failed" }); 
   }
 };
+
 
 const getOpenedComplaintsWithCategory = async (req, res) => {
   try {
@@ -365,47 +302,39 @@ const getOpenedComplaintsWithCategory = async (req, res) => {
       },
     ]);
 
-    if(!complains){
-      return res.status(404).json({ error: "Error: No open complaints found for this category" });
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints found" });
     }
 
-    const filteredComplains = complains.filter(complain => !complain.assignedTo);
-    if (filteredComplains.length === 0) {
-      return res.status(200).json({ error: `No new complaints of ${req.body.category} category` });
-    }
-
-    res.json(filteredComplains);
+    res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const assignComplaintToStaff = async (req, res) => {
    try{
-    const  minTicketID  = req.body.minTicketID;
-    const minStaffID  = req.body.minStaffID;
-    
+    const { id } = req.body;
+    const { assignedTo } = req.body;
 
-    let updatedComplain = await Complain.findById(minTicketID);
-
-    
+    let updatedComplain = await Complain.findOne({ _id: id });
 
     if (!updatedComplain) {
-      return res.status(404).json({ error: "Error: Complain not found" });
+      return res.status(404).json({ error: "Complain not found" });
     }
 
     if(updatedComplain.assignedTo){
-      return res.status(404).json({ error: "Error: Complain already assigned" });
+      return res.status(404).json({ error: "Complain already assigned" });
     }
 
     if (updatedComplain.status !== "OPEN") {
-      return res.status(404).json({ error: "Error: Complain already being processed" });
+      return res.status(404).json({ error: "Complain already being processed" });
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
-      minTicketID,
-      { assignedTo: minStaffID },
+      id,
+      { assignedTo },
       { new: true }
     );
 
@@ -413,7 +342,7 @@ const assignComplaintToStaff = async (req, res) => {
    }
     catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Error assigning complaint to staff member" });
+      res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
@@ -423,13 +352,13 @@ const getTicketWithStaffID = async (req, res) => {
     const complains = await Complain.find({ assignedTo: assignedTo });
 
     if (!complains) {
-      return res.status(404).json({ error: "Error loading complaints" });
+      return res.status(404).json({ error: "Complain not found" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -444,39 +373,17 @@ const getComplaintsWithIdandViewedByStaff = async (req, res) => {
       },
     ]);
 
-    if (!complains) {
-      return res.status(404).json({ error: "Error: No complaints found" });
+    if (complains.length === 0) {
+      return res.status(404).json({ error: "No complaints found" });
     }
 
     res.json(complains);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-const getComplaintsWithIdandOpen = async (req, res) => {
-  try {
-    const complains = await Complain.aggregate([
-      {
-        $match: {
-          status: "OPEN",
-          assignedTo: req.body.assignedTo,
-        },
-      },
-    ]);
-
-    if (!complains) {
-      return res.status(404).json({ error: "Error: No complaints found" });
-    }
-
-    res.json(complains);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error loading complaints" });
-  }
-};
-  
 
 
 module.exports = {
@@ -486,14 +393,12 @@ module.exports = {
   getAllComplain,
   filterAndSortTickets,
   getInProgressComplains,
+  getComplainsByCitizen,
   addFeedback,
   getOpenedComplaintsWithCategory,
   assignComplaintToStaff,
   getComplaintsWithIdandViewedByStaff,
   getTicketWithStaffID,
-  checkSlaComplain,
-  getComplaintsWithIdandOpen,
-  getComplainByDate,
-  getComplainByDateAndSubcategory
+  checkSlaComplain
 };
 

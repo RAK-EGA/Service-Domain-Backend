@@ -60,7 +60,7 @@ const complainSchema = new mongoose.Schema({
   },
   location: {
     type: String,
-  },
+  }
   
 }
 ,{

@@ -7,23 +7,21 @@ const {getRequest} = require("../controllers/request-controller");
 const {getInProgressRequests} = require("../controllers/request-controller");
 const {updateRequestStatus} = require("../controllers/request-controller");
 const authenticateUser = require('../middlewares/UserAuthentication');
-const {getOpenedRequestsWithServiceName} = require("../controllers/request-controller")
+const {getOpenedRequestsWithCategory} = require("../controllers/request-controller")
 const {assignRequestToStaff} = require("../controllers/request-controller")
 const {getRequestsWithIdandViewedByStaff} = require("../controllers/request-controller")
 const {getTicketWithStaffID} = require("../controllers/request-controller")
-
 
 requestrouter.post("/submitRequest", authenticateUser, submitRequest);
 requestrouter.get("/getAllRequests", getAllRequests);
 requestrouter.get("/filter/:searchString", filterAndSortRequests);
 requestrouter.get("/getRequest/:id", authenticateUser , getRequest);
 requestrouter.get("/getInProgressRequests", getInProgressRequests);
-requestrouter.put("/updateRequest/:id",updateRequestStatus );
-requestrouter.get('/openedRequestsWithCategory', getOpenedRequestsWithServiceName);
+requestrouter.put("/updateRequest/:id", updateRequestStatus);
+requestrouter.get('/openedRequestsWithCategory', getOpenedRequestsWithCategory);
 requestrouter.put('/assignRequestToStaff', assignRequestToStaff);
 requestrouter.get('/viewRequestsWithIdandViewedByStaff', getRequestsWithIdandViewedByStaff);
 requestrouter.get('/getTicketWithStaffID', getTicketWithStaffID);
-
 
 
 

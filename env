@@ -1,0 +1,13 @@
+port=3000
+SECRET_KEY=g9gf213497fg
+AWS_REGION=me-south-1
+RULE_ARN_SUBMISSION=arn:aws:events:me-south-1:945187596143:rule/submit-ticket-rule
+RULE_ARN_CHECKSLA=arn:aws:events:me-south-1:945187596143:rule/checkSla-rule
+RULE_ARN_UPDATE=arn:aws:events:me-south-1:945187596143:rule/update-ticket
+RULE_ARN_FEEDBACK=arn:aws:events:me-south-1:945187596143:rule/feedback-rule
+RULE_ARN_CHECKSLA_REQUEST=arn:aws:events:eu-west-3:945187596143:rule/checkSla-request-rule
+REGION=me-south-1
+AWS_ACCESS_KEY_ID=AKIA5YEMSE5XYNKZM74G
+AWS_SECRET_ACCESS_KEY=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
+RULE_ARN_REQUEST_SUBMISSION=arn:aws:events:me-south-1:945187596143:rule/submit-request-rule
+RULE_ARN_REQUEST_UPDATE=arn:aws:events:me-south-1:945187596143:rule/update-request-rule

@@ -387,7 +387,7 @@ const assignComplaintToStaff = async (req, res) => {
     const minStaffID  = req.body.minStaffID;
     
 
-    let updatedComplain = await Complain.findById(minTicketID);
+    let updatedComplain = await Complain.findById({_id:minTicketID});
 
     
 
@@ -404,7 +404,7 @@ const assignComplaintToStaff = async (req, res) => {
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
-      minTicketID,
+      {_id: minTicketID},
       { assignedTo: minStaffID },
       { new: true }
     );

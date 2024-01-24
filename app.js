@@ -79,7 +79,7 @@ cron.schedule('0 * * * *', async () => {
 
 // Replace these values with your ElastiCache Redis endpoint and port
 const redis = new Redis({
-  host: 'complaintcache-wrwwng.serverless.mes1.cache.amazonaws.com',
+  host: 'service-catalog-cache.wrwwng.clustercfg.mes1.cache.amazonaws.com',
   port: 6379,
 });
 

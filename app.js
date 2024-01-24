@@ -58,7 +58,7 @@ app.use(
 );
  
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
     try {
       await checkSlaComplain();
       console.log('checkSla executed successfully.');
@@ -66,7 +66,7 @@ cron.schedule('* * * * *', async () => {
       console.error('Error executing checkSla:', error);
     }
   });
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
     try {
       await checkSla();
       console.log('checkSla executed successfully.');

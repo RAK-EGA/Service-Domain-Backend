@@ -14,6 +14,7 @@ const Service = require("./model/Service.js");
 const servicerouter = require('./routes/services-router.js');
 const requestrouter = require('./routes/request-router.js');
 const axios = require("axios");
+const Redis = require('ioredis');
 
  
 const app = express();
@@ -74,6 +75,22 @@ cron.schedule('0 * * * *', async () => {
       console.error('Error executing checkSla:', error.stack);
     }
   });  
+
+
+// Replace these values with your ElastiCache Redis endpoint and port
+const redis = new Redis({
+  host: 'complaintcache-wrwwng.serverless.mes1.cache.amazonaws.com',
+  port: 6379,
+});
+
+// Handle connection events
+redis.on('connect', () => {
+  console.log('Connected to Redis');
+});
+
+redis.on('error', (err) => {
+  console.error('Redis connection error:', err);
+});
 
 mongoose
     .connect(

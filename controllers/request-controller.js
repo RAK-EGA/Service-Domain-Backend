@@ -351,9 +351,9 @@ const getOpenedRequestsWithServiceName = async (req, res) => {
     }
 
     const filteredRequests = requests.filter(request => !request.assignedTo);
-
+    console.log(req.body.serviceName);
     if (filteredRequests.length === 0) {
-      return res.status(200).json("Error: No unassigned open Requests found" );
+      return res.status(200).json({ error: `No new requests of ${req.body.serviceName} service` });
     }
 
     res.json(filteredRequests);

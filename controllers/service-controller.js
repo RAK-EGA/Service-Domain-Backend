@@ -3,6 +3,7 @@ const Service = require("../model/Service.js");
 const axios = require('axios');
 const { getAllKeys, getCache } = require("../clients/redisClient");
 
+//no longer used
 const oneTimeJob = async (req, res) => { 
     const instance = await Service.find();
     if (instance.length == 0 || !instance || instance == null) {
@@ -49,16 +50,28 @@ const oneTimeJob = async (req, res) => {
     }
 }
 
+//done
 const getServiceByName = async (req, res) => {
   try {
     // Retrieve serviceName from the request params
     const { service_name } = req.params;
-    
-    // Query the database to find the service with the specified name
+
+    // Check if the service is in the Redis cache
+    const cachedService = await getCache(`Service:${service_name}`);
+
+    if (cachedService) {
+      // If the service is in the cache, return the cached value
+      res.json(cachedService);
+      return;
+    }
+
+    // If the service is not in the cache, query the database
     const service = await Service.findOne({ service_name });
 
-    // Check if the service was found
     if (service) {
+      // Save the fetched data to cache
+      await setCache(`Service:${service_name}`, service);
+
       // Send the service details in the response body
       res.json(service);
     } else {
@@ -128,20 +141,29 @@ const getCategories = async (req, res) => {
   }
 };
 
+//done
 const getSubCategories = async (req, res) => {
   try {
     const { department } = req.params;
-    //get all complains with the same department
-    const allComplains = await Service.find( {  service_type: "Complaint", department: department});
-    //get all subcategories
-    const subcategories = Array.from(new Set(allComplains.map(complain => complain.service_name)));
+
+    // Get all keys from Redis
+    const allKeys = await getAllKeys();
+
+    // Filter keys that represent complaints for the specified department
+    const complaintKeys = allKeys.filter((key) => key.startsWith(`Complaint:${department}:`));
+
+    // Extract the subcategory names from the third item when splitting by ":"
+    const subcategories = Array.from(new Set(complaintKeys.map((key) => key.split(":")[2])));
+
+    // Send the subcategory names in the response body
     res.json({ subcategories });
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Error getting subcategories' });
   }
-};  
+};
+  
 
-
+//new cache function
 const getAllCacheKeys = async (req, res) => {
   try {
     const keys = await getAllKeys();

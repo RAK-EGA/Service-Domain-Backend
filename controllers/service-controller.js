@@ -55,9 +55,11 @@ const getServiceByName = async (req, res) => {
   try {
     // Retrieve serviceName from the request params
     const { service_name } = req.params;
+    const keys = await getAllKeys();
+    const cachedServiceKey = keys.filter((key) => key.includes(service_name));
 
     // Check if the service is in the Redis cache
-    const cachedService = await getCache(`${service_name}`);
+    const cachedService = await getCache(`${cachedServiceKey}`);
 
     if (cachedService) {
       // If the service is in the cache, return the cached value

@@ -12,7 +12,7 @@ redis.on('connect', () => {
 });
 
 redis.on('error', (err) => {
-  console.error('Redis connection error:', err);
+  console.error('Error: Redis connection error:', err);
 });
 
 async function getCache(key) {

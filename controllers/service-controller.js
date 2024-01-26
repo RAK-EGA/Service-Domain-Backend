@@ -73,19 +73,23 @@ const getServiceByName = async (req, res) => {
 };
 
 const getRequestsNames = async (req, res) => {
-    try {
-      // Query the database to get all documents
-      const allRequests = await Service.find({ service_type: "Request" });
-      
-      // Extract unique service names
-      const serviceNames = Array.from(new Set(allRequests.map(request => request.service_name)));
-      // console.log(serviceNames);
-      // Send the service names in the response body
-      res.json({ serviceNames });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  };
+  try {
+    // Get all keys from Redis
+    const allKeys = await getAllKeys();
+
+    // Filter keys that represent requests
+    const requestKeys = allKeys.filter((key) => key.startsWith("Request:"));
+
+    // Extract the names from the third item when splitting by ":"
+    const requestNames = requestKeys.map((key) => key.split(":")[2]);
+
+    // Send the request names in the response body
+    res.json({ requestNames });
+  } catch (error) {
+    console.error('Error getting request names:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
 const getComplainsNames = async (req, res) => {
     try {

@@ -1,6 +1,7 @@
 
 const Service = require("../model/Service.js");
 const axios = require('axios');
+const { getAllKeys, getCache } = require("../clients/redisClient");
 
 const oneTimeJob = async (req, res) => {
     
@@ -71,7 +72,7 @@ const getServiceByName = async (req, res) => {
   }
 };
 
-  const getRequestsNames = async (req, res) => {
+const getRequestsNames = async (req, res) => {
     try {
       // Query the database to get all documents
       const allRequests = await Service.find({ service_type: "Request" });
@@ -86,7 +87,7 @@ const getServiceByName = async (req, res) => {
     }
   };
 
-  const getComplainsNames = async (req, res) => {
+const getComplainsNames = async (req, res) => {
     try {
       // Query the database to get all documents
       const allRequests = await Service.find( {  service_type: "Complaint"});
@@ -126,6 +127,17 @@ const getSubCategories = async (req, res) => {
   }
 };  
 
+
+const getAllCacheKeys = async (req, res) => {
+  try {
+    const keys = await getAllKeys();
+    res.json({ keys });
+  } catch (error) {
+    console.error('Error getting all cache keys:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
     oneTimeJob,
     getServiceByName,
@@ -133,4 +145,5 @@ module.exports = {
     getComplainsNames,
     getCategories,
     getSubCategories,
+    getAllCacheKeys,
 }

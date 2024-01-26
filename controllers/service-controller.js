@@ -3,8 +3,7 @@ const Service = require("../model/Service.js");
 const axios = require('axios');
 const { getAllKeys, getCache } = require("../clients/redisClient");
 
-const oneTimeJob = async (req, res) => {
-    
+const oneTimeJob = async (req, res) => { 
     const instance = await Service.find();
     if (instance.length == 0 || !instance || instance == null) {
         try {
@@ -72,6 +71,7 @@ const getServiceByName = async (req, res) => {
   }
 };
 
+//done
 const getRequestsNames = async (req, res) => {
   try {
     // Get all keys from Redis
@@ -86,35 +86,45 @@ const getRequestsNames = async (req, res) => {
     // Send the request names in the response body
     res.json({ requestNames });
   } catch (error) {
-    console.error('Error getting request names:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Error getting requests names' });
   }
 };
 
+//done
 const getComplainsNames = async (req, res) => {
-    try {
-      // Query the database to get all documents
-      const allRequests = await Service.find( {  service_type: "Complaint"});
-      
-      // Extract unique service names
-      const serviceNames = Array.from(new Set(allRequests.map(request => request.service_name)));
-      // console.log(serviceNames);
-      // Send the service names in the response body
-      res.json({ serviceNames });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+  try {
+    // Get all keys from Redis
+    const allKeys = await getAllKeys();
+
+    // Filter keys that represent Complaint
+    const ComplaintKeys = allKeys.filter((key) => key.startsWith("Complaint:"));
+
+    // Extract the names from the third item when splitting by ":"
+    const ComplaintNames = ComplaintKeys.map((key) => key.split(":")[2]);
+
+    // Send the Complaint names in the response body
+    res.json({ ComplaintNames });
+  } catch (error) {
+    res.status(500).json({ error: 'Error getting Complaint names' });
+  }
   };
 
+//done
 const getCategories = async (req, res) => {
   try {
-    // Query the database to get all documents
-    const allComplains = await Service.find( {  service_type: "Complaint"});
-    const departmentNames = Array.from(new Set(allComplains.map(complain => complain.department)));
-    console.log(departmentNames);
+    // Get all keys from Redis
+    const allKeys = await getAllKeys();
+
+    // Filter keys that represent complaints
+    const complaintKeys = allKeys.filter((key) => key.startsWith("Complaint:"));
+
+    // Extract the department names from the second item when splitting by ":"
+    const departmentNames = Array.from(new Set(complaintKeys.map((key) => key.split(":")[1])));
+
+    // Send the department names in the response body
     res.json({ departmentNames });
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Error getting department names' });
   }
 };
 

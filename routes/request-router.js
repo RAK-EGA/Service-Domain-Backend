@@ -16,7 +16,7 @@ const {getTicketWithStaffID} = require("../controllers/request-controller")
 requestrouter.post("/submitRequest", authenticateUser, submitRequest);
 requestrouter.get("/getAllRequests", getAllRequests);
 requestrouter.get("/filter/:searchString", filterAndSortRequests);
-requestrouter.get("/getRequest/:id", authenticateUser , getRequest);
+requestrouter.get("/getRequest/:id" , getRequest);
 requestrouter.get("/getInProgressRequests", getInProgressRequests);
 requestrouter.put("/updateRequest/:id",updateRequestStatus );
 requestrouter.get('/openedRequestsWithCategory', getOpenedRequestsWithServiceName);

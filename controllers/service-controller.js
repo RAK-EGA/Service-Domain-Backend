@@ -57,30 +57,16 @@ const getServiceByName = async (req, res) => {
     const { service_name } = req.params;
 
     // Check if the service is in the Redis cache
-    const cachedService = await getCache(`Service:${service_name}`);
+    const cachedService = await getCache(`${service_name}`);
 
     if (cachedService) {
       // If the service is in the cache, return the cached value
       res.json(cachedService);
       return;
     }
-
-    // If the service is not in the cache, query the database
-    const service = await Service.findOne({ service_name });
-
-    if (service) {
-      // Save the fetched data to cache
-      await setCache(`Service:${service_name}`, service);
-
-      // Send the service details in the response body
-      res.json(service);
-    } else {
-      // If service is not found, return an appropriate response
-      res.status(404).json({ error: 'Service not found' });
-    }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Error: service not found' });
   }
 };
 

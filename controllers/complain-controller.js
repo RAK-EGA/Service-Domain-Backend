@@ -1,6 +1,6 @@
 
 const axios = require('axios');
-const Complain = require("../model/Complain");
+  const Complain = require("../model/Complain");
 
 const { PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 const { createEventBridgeClient } = require("../ebClient");
@@ -303,7 +303,7 @@ const addFeedback = async (req, res) => {
   }
 };
 
-const checkSlaComplain = async () => {
+const checkSlaComplain = async (req, res) => {
   console.log("inside check sla");
   try {
     // Fetch all requests from the database

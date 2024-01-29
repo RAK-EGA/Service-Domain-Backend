@@ -50,6 +50,8 @@ const oneTimeJob = async (req, res) => {
     }
 }
 
+
+
 async function populateCache() {
   try {
     // Make a GET request to the API endpoint
@@ -72,7 +74,6 @@ async function populateCache() {
     throw error; // Handle the error appropriately in your application
   }
 }
-
 
 //done
 const getServiceByName = async (req, res) => {

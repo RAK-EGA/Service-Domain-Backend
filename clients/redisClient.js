@@ -35,5 +35,4 @@ module.exports = {
   getCache,
   getAllKeys,
   setCache,
-  // other exports if needed
 };

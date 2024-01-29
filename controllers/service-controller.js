@@ -1,7 +1,7 @@
 
 const Service = require("../model/Service.js");
 const axios = require('axios');
-const { getAllKeys, getCache } = require("../clients/redisClient");
+const { getAllKeys, getCache, setCache } = require("../clients/redisClient");
 
 //no longer used
 const oneTimeJob = async (req, res) => { 
@@ -50,6 +50,30 @@ const oneTimeJob = async (req, res) => {
     }
 }
 
+async function populateCache() {
+  try {
+    // Make a GET request to the API endpoint
+    const response = await axios.get('https://rakmun-api.rakega.online/servicecatalog/populate-cache/');
+
+    // Assuming the API response is an array of objects with keys and values
+    const data = response.data;
+
+    // Save each key-value pair to the cache
+    for (const item of data) {
+      const { key, value } = item;
+
+      // Set the key-value pair in the cache
+      await setCache(key, value);
+    }
+
+    console.log('Cache populated successfully.');
+  } catch (error) {
+    console.error('Error populating cache:', error.message);
+    throw error; // Handle the error appropriately in your application
+  }
+}
+
+
 //done
 const getServiceByName = async (req, res) => {
   try {
@@ -72,11 +96,15 @@ const getServiceByName = async (req, res) => {
   }
 };
 
+
 //done
 const getRequestsNames = async (req, res) => {
   try {
     // Get all keys from Redis
     const allKeys = await getAllKeys();
+    if(allKeys.length===0){
+      populateCache()
+    }
 
     // Filter keys that represent requests
     const requestKeys = allKeys.filter((key) => key.startsWith("Request:"));
@@ -88,6 +116,28 @@ const getRequestsNames = async (req, res) => {
     res.json({ requestNames });
   } catch (error) {
     res.status(500).json({ error: 'Error getting requests names' });
+  }
+};
+
+//done
+const getCategories = async (req, res) => {
+  try {
+    // Get all keys from Redis
+    const allKeys = await getAllKeys();
+    if(allKeys.length===0){
+      populateCache()
+    }
+
+    // Filter keys that represent complaints
+    const complaintKeys = allKeys.filter((key) => key.startsWith("Complaint:"));
+
+    // Extract the department names from the second item when splitting by ":"
+    const departmentNames = Array.from(new Set(complaintKeys.map((key) => key.split(":")[1])));
+
+    // Send the department names in the response body
+    res.json({ departmentNames });
+  } catch (error) {
+    res.status(500).json({ error: 'Error getting department names' });
   }
 };
 
@@ -109,25 +159,6 @@ const getComplainsNames = async (req, res) => {
     res.status(500).json({ error: 'Error getting Complaint names' });
   }
   };
-
-//done
-const getCategories = async (req, res) => {
-  try {
-    // Get all keys from Redis
-    const allKeys = await getAllKeys();
-
-    // Filter keys that represent complaints
-    const complaintKeys = allKeys.filter((key) => key.startsWith("Complaint:"));
-
-    // Extract the department names from the second item when splitting by ":"
-    const departmentNames = Array.from(new Set(complaintKeys.map((key) => key.split(":")[1])));
-
-    // Send the department names in the response body
-    res.json({ departmentNames });
-  } catch (error) {
-    res.status(500).json({ error: 'Error getting department names' });
-  }
-};
 
 //done
 const getSubCategories = async (req, res) => {

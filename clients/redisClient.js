@@ -26,8 +26,14 @@ async function getAllKeys() {
   return keys;
 }
 
+async function setCache(key, value) {
+  // Use the SET command to set a key-value pair in the Redis cache
+  await redis.set(key, JSON.stringify(value));
+}
+
 module.exports = {
   getCache,
   getAllKeys,
+  setCache,
   // other exports if needed
 };

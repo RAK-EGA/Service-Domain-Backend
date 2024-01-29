@@ -97,19 +97,32 @@ const updateComplainStatus = async (req, res) => {
 
 const getAllComplain = async (req, res) => {
   try {
-    
-    const complain = await Complain.find();
+    // Fetch complaints that have isExceeded=true and status=OPEN first
+    const complaints = await Complain.find({
+      isExceeded: true,
+      status: 'OPEN',
+    });
 
-    if (!complain) {
+    // Fetch other complaints
+    const otherComplaints = await Complain.find({
+      isExceeded: { $ne: true },
+
+    });
+
+    // Concatenate the arrays to have isExceeded=true and status=OPEN first
+    const allComplaints = complaints.concat(otherComplaints);
+
+    if (!allComplaints) {
       return res.status(404).json({ error: "Error loading complaints" });
     }
 
-    res.json(complain);
+    res.json(allComplaints);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error loading complaints" });
   }
 };
+
 
 const getComplain = async (req, res) => {
   try {
@@ -262,11 +275,12 @@ const filterAndSortTickets = async (req, res) => {
 
 const addFeedback = async (req, res) => {
   try {
-    const  id  = req.user.EID;
+    const { id } = req.params;
     const { feedback } = req.body;
     const { Rate } = req.body;
-
-    let updatedComplain = await Complain.findOne({ _id: id });
+console.log("rate:", Rate);
+console.log("feedback:", feedback);
+let updatedComplain = await Complain.findOne({ _id: id });
 
     if (!updatedComplain) {
       console.log("Complain not found")

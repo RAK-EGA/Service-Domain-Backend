@@ -278,23 +278,16 @@ const addFeedback = async (req, res) => {
     const { id } = req.params;
     const { feedback } = req.body;
     const { Rate } = req.body;
-console.log("rate:", Rate);
-console.log("feedback:", feedback);
-let updatedComplain = await Complain.findOne({ _id: id });
+
+    let updatedComplain = await Complain.findOne({ _id: id });
 
     if (!updatedComplain) {
       console.log("Complain not found")
-      return res.status(404).json({ error: "Error: Complain not found" });
-    }
-    if(feedback.length===0){
-      return res.status(404).json({ error: "Error: Feedback can't be empty" });
-    }
-    if(!Rate){
-      return res.status(404).json({ error: "Error: Rate can't be empty" });
+      return res.status(404).json({ error: "Complain not found" });
     }
 
     if (updatedComplain.status !== "RESOLVED") {
-      return res.status(404).json({ error: "Error: Complain not resolved yet" });
+      return res.status(404).json({ error: "Complain not resolved yet" });
     }
 
     updatedComplain = await Complain.findByIdAndUpdate(
@@ -313,7 +306,7 @@ let updatedComplain = await Complain.findOne({ _id: id });
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error adding feedback" }); 
+    res.status(500).json({ error: "Internal Server Error" }); 
   }
 };
 

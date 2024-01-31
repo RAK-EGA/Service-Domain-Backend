@@ -11,6 +11,7 @@ const {getOpenedRequestsWithServiceName} = require("../controllers/request-contr
 const {assignRequestToStaff} = require("../controllers/request-controller")
 const {getRequestsWithIdandViewedByStaff} = require("../controllers/request-controller")
 const {getTicketWithStaffID} = require("../controllers/request-controller")
+const {getRequestsWithIdandOpen}=require("../controllers/request-controller")
 
 
 requestrouter.post("/submitRequest", authenticateUser, submitRequest);
@@ -23,6 +24,7 @@ requestrouter.get('/openedRequestsWithCategory', getOpenedRequestsWithServiceNam
 requestrouter.put('/assignRequestToStaff', assignRequestToStaff);
 requestrouter.get('/viewRequestsWithIdandViewedByStaff', getRequestsWithIdandViewedByStaff);
 requestrouter.get('/getTicketWithStaffID', getTicketWithStaffID);
+requestrouter.get('/viewRequestsWithIdandOpen', getRequestsWithIdandOpen);
 
 
 

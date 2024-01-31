@@ -247,7 +247,7 @@ const filterAndSortRequests = async (req, res) => {
     let searchString = req.params.searchString;
     const assignedTo = req.body.assignedTo;
 
-    if (searchString.length === 0) {
+    if (searchString==null||searchString.length === 0) {
       return res.status(404).json({ error: "Error: search string can't be empty " });
     }
 
@@ -290,13 +290,13 @@ const filterAndSortRequests = async (req, res) => {
     ]);
 
     if (!tickets || tickets.length === 0) {
-      return res.status(404).json({ error: "Error: No complaints found" });
+      return res.status(404).json({ error: "Error: No requests found" });
     }
 
     res.json(tickets);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error loading or filtering complaints' });
+    res.status(500).json({ error: 'Error loading or filtering requests' });
   }
 };
 
@@ -437,7 +437,27 @@ const getRequestsWithIdandViewedByStaff = async (req, res) => {
   }
 };
 
+const getRequestsWithIdandOpen = async (req, res) => {
+  try {
+    const Requests = await Request.aggregate([
+      {
+        $match: {
+          status: "OPEN",
+          assignedTo: req.body.assignedTo,
+        },
+      },
+    ]);
 
+    if (!Requests) {
+      return res.status(404).json({ error: "Error: No Requests found" });
+    }
+
+    res.json(Requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error getting request viewed by staff" });
+  }
+};
 
 module.exports = {
   submitRequest,
@@ -451,4 +471,5 @@ module.exports = {
   assignRequestToStaff,
   getRequestsWithIdandViewedByStaff,
   getTicketWithStaffID,
+  getRequestsWithIdandOpen
 };
